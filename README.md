@@ -3,6 +3,11 @@ This is small application that implements neurofilter outliers detection from [t
 
 See video how it works [here](https://youtu.be/H-FMqUopDFw)
 
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/08b677c7-4b8e-40fc-9dcd-51ccc48a46a5)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/6f277f19-4e1c-43b5-ae22-8f9ec07d4400)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/6cea5a85-a048-4870-8a8e-cd59a1e139d1)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/a51f5b57-69c4-45fc-8f2f-5bebc4dff411)
+
 # Setup
 1. `python 3.11`
 
