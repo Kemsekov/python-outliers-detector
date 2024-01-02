@@ -1,5 +1,5 @@
 # About
-This is small application that implements outliers detection from [this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf)
+This is small application that implements neurofilter outliers detection from [this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf)
 
 See video how it works [here](https://youtu.be/H-FMqUopDFw)
 
