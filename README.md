@@ -1,6 +1,8 @@
 # About
 This is small application that implements outliers detection from [this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf)
 
+See video how it works [here](https://youtu.be/H-FMqUopDFw)
+
 # Setup
 1. `python 3.11`
 
@@ -43,5 +45,12 @@ and plots first `elements to show` samples with highest error, so you can see an
 Also it plots average total error of models dependent on iteration index, so you can see how your error decreases as you remove more and more outliers.
 
 `save results` - saves filtered from outliers data and outliers into different csv files in the same directory where dataset csv file is located.
+
+# Change model
+in file `functions/build_model.py` we have sole method `build_model` that is used to build model which is gonna be used to create models which computes error vector of samples.
+
+By default it is using 2 layers with same setup as [described in this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf), but you can change it.
+
+
 
 
