@@ -26,6 +26,37 @@ def optimal_synapsis(N_x,N_y,samples):
     maxS = N_y*(samples/N_x+1)*(N_x+N_y+1)+N_y
     return minS,maxS
 
+def four_layers_optimal_size(N_x,N_y,samples,alpha1,alpha2):
+    """
+    for network N_x * L * K1 * K2 * N_y
+
+    N_x - input space dimensions.
+
+    N_y - output space dimensions
+
+    samples - count of samples in dataset
+
+    alpha1 - relation of third layer to first K1=alpha1*L
+
+    alpha2 - relation of third layer to first K2=alpha2*L
+
+    returns (min,max) size of second layer (L) for neural network. Third and fourth layer size can be obtained by formula above
+
+    Optimal value lies somewhere between.
+
+    A formula is known in the theory of neural networks 
+    that is a consequence of the 
+    Arnold – Kolmogorov – Hecht-Nielsen theorem.
+    Computes optimal amount of synapsis needed to build neural network
+    that generalizes data distribution
+    """
+    maxS,minS = optimal_synapsis(N_x,N_y,samples)
+    C=alpha1+alpha1*alpha2
+    M=N_x+alpha2*N_y
+    L_min = (np.sqrt(M*M+4*C*minS)-M)*0.5/C
+    L_max = (np.sqrt(M*M+4*C*maxS)-M)*0.5/C
+    return (L_min,L_max)
+
 def three_layers_optimal_size(N_x,N_y,samples,alpha):
     """
     for network N_x * L * K * N_y
