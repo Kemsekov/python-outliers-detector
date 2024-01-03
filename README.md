@@ -1,6 +1,7 @@
 # About
-This is small application that implements outliers detection from [this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf)
+This is small application that implements neurofilter outliers detection from [this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf)
 
+See video how it works [here](https://youtu.be/H-FMqUopDFw)
 # Setup
 1. `python 3.11`
 
@@ -43,5 +44,18 @@ and plots first `elements to show` samples with highest error, so you can see an
 Also it plots average total error of models dependent on iteration index, so you can see how your error decreases as you remove more and more outliers.
 
 `save results` - saves filtered from outliers data and outliers into different csv files in the same directory where dataset csv file is located.
+
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/08b677c7-4b8e-40fc-9dcd-51ccc48a46a5)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/6f277f19-4e1c-43b5-ae22-8f9ec07d4400)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/6cea5a85-a048-4870-8a8e-cd59a1e139d1)
+![image](https://github.com/Kemsekov/python-outliers-detector/assets/57869319/a51f5b57-69c4-45fc-8f2f-5bebc4dff411)
+
+
+# Change model
+in file `functions/build_model.py` we have sole method `build_model` that is used to build model which is gonna be used to create models which computes error vector of samples.
+
+By default it is using 2 layers with same setup as [described in this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf), but you can change it.
+
+
 
 
