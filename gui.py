@@ -29,7 +29,28 @@ scale: np.ndarray[np.float64] = None
 
 iteration_errors = []
 removed_rows = []
-
+def score_function(xi):
+    np.random.shuffle(shuffled_data)
+    # test size dependent on test_split
+    test_size = int(len(data)*test_split.get())
+    train = shuffled_data[test_size:]
+    data_input_split=input_dimensions.get()
+    models = [build_model(train[:,:data_input_split],train[:,data_input_split:],xi) for i in range(0,models_count.get())]
+    avg_error = average_prediction_error(data,models,data_input_split)
+    avg_model_error = np.average(avg_error)
+    return avg_model_error
+def find_xi_grid_search():
+    if data is None:
+        print("Open dataset")
+        return
+    global xi
+    import multiprocessing
+    pool = multiprocessing.Pool(os.cpu_count())
+    scores = pool.map(score_function, np.arange(0, 0.5, 0.05))
+    best_score = min(scores)
+    best_xi = np.arange(0.0, 0.5, 0.05)[scores.index(best_score)]
+    xi.set(best_xi)
+    return
 def compute_errors():
     np.random.shuffle(shuffled_data)
     # test size dependent on test_split
@@ -43,7 +64,7 @@ def compute_errors():
     # error over all samples
     avg_error = average_prediction_error(data,models,data_input_split)
 
-    # average error of all models over test samples
+    # average total model error
     avg_model_error = np.average(avg_error)
     iteration_errors.append(avg_model_error)
     print(f"Avg model error: {avg_model_error}")
@@ -107,6 +128,7 @@ def open_file():
     shuffled_data = data.copy()
     iteration_errors = []
     removed_rows = []
+    input_dimensions.set(-1)
 def save_results():
     if data is None: 
         print("No dataset is opened")
@@ -177,6 +199,9 @@ def gui():
 
     button = tk.Button(root, text="save results", command=save_results,font=hack_font)
     button.grid(row=3,column=2)
+
+    button = tk.Button(root, text="find xi", command=find_xi_grid_search,font=hack_font)
+    button.grid(row=4,column=2)
 
     root.geometry("800x400")
     root.mainloop()
