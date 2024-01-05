@@ -33,11 +33,9 @@ def score_function(xi):
     # test size dependent on test_split
     test_size = int(len(data)*test_split.get())
     train = shuffled_data[test_size:]
-    test = shuffled_data[:test_size]
-
     data_input_split=input_dimensions.get()
     models = [build_model(train[:,:data_input_split],train[:,data_input_split:],xi) for i in range(0,models_count.get())]
-    avg_error = average_prediction_error(test,models,data_input_split)
+    avg_error = average_prediction_error(data,models,data_input_split)
     avg_model_error = np.average(avg_error)
     return avg_model_error
 def find_xi_grid_search():
