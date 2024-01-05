@@ -3,6 +3,7 @@ import json
 import os
 import numpy as np
 import pandas as pd
+from functions.normalization import Normalization
 
 def optimal_synapsis(N_x,N_y,samples):
     """
@@ -112,39 +113,30 @@ def two_layers_optimal_size(N_x,N_y,samples):
     s_sum = N_x+N_y
     return minS/s_sum,maxS/s_sum
 
-# define transformation and reverse transformation
-def transform_row(row,mean,scale):
-    return (row-mean)/scale
-
-def restore_row(transformed_row : np.ndarray,mean: np.ndarray,scale: np.ndarray):
-    return transformed_row*scale+mean
-
 def load_dataset(working_dir,dataset):
-    """Loads dataset, returns data, mean,scale"""
+    """Loads dataset, returns data, normalization"""
     # load model
     data_original = pd.read_csv(f"{working_dir}/{dataset}").dropna()
-    data=data_original.to_numpy()
+    data=data_original.to_numpy(dtype='float32')
 
     if os.path.isfile(f"{working_dir}/meta.json"):
         with open(f"{working_dir}/meta.json") as f:
             meta = json.loads(f.read())
-        mean = np.array(meta["mean"],dtype="float64")
-        scale = np.array(meta["scale"],dtype="float64")
-        data = (data-mean)/scale
+        translation = np.array(meta["translation"],dtype="float32")
+        scale = np.array(meta["scale"],dtype="float32")
+        norm = Normalization(translation,scale)
+        data = norm.transform(data)
     else:
-        # make it zero centred by subtracting mean
-        mean = np.mean(data,axis=0)
-        data = data-mean
-        # scale it to be in range [-1;1]
-        scale = np.max(np.abs(data),axis=0)
-        data/=scale
+        # make it zero centred by subtracting median
+        norm = Normalization()
+        data = norm.fit(data)
 
         with open(f"{working_dir}/meta.json","w") as f:
             f.write(json.dumps({
-                "mean":[float(i) for i in mean],
-                "scale": [float(i) for i in scale]
+                "translation":[float(i) for i in norm.translation],
+                "scale": [float(i) for i in norm.scale]
             }))
-    return data,mean,scale
+    return data,norm
 
 def get_prediction_errors(data,model,data_input_split):
     """
@@ -154,7 +146,7 @@ def get_prediction_errors(data,model,data_input_split):
     """
     prediction = model.predict(data[:,:data_input_split])
 
-    # just use mean abs error
+    # just use translation abs error
     error = np.average(np.abs(data[:,data_input_split:]-prediction),axis=1)
     return error
 

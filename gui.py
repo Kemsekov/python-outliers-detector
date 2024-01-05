@@ -21,11 +21,10 @@ working_dir=""
 columns: pd.Index = None #dataset csv columns
 iteration_errors = []
 removed_rows = []
-shuffled_data: np.ndarray[np.float64] # dataset copy that is used for shuffle
+shuffled_data: np.ndarray[np.float32] # dataset copy that is used for shuffle
 
-data: np.ndarray[np.float64] = None
-mean: np.ndarray[np.float64] = None
-scale: np.ndarray[np.float64] = None
+data: np.ndarray[np.float32] = None
+normalization : Normalization
 
 iteration_errors = []
 removed_rows = []
@@ -117,7 +116,7 @@ def run_iteration():
     rows_to_remove.set("")
 # save values without outliers in same directory
 def open_file():
-    global data,mean,scale,columns,shuffled_data,working_dir, iteration_errors, removed_rows
+    global data,normalization,columns,shuffled_data,working_dir, iteration_errors, removed_rows
     dataset = fd.askopenfilename(filetypes=[("CSV files", "*.csv")])
     if dataset=="": return
 
@@ -125,7 +124,7 @@ def open_file():
     working_dir=dataset_dir
     print(dataset_dir)
     print(dataset_name)
-    data,mean,scale = load_dataset(dataset_dir,dataset_name)
+    data,normalization = load_dataset(dataset_dir,dataset_name)
     columns = pd.read_csv(f"{dataset_dir}/{dataset_name}").columns
     shuffled_data = data.copy()
     iteration_errors = []
@@ -135,8 +134,8 @@ def save_results():
     if data is None: 
         print("No dataset is opened")
         return
-    data_without_outliers = restore_row(data,mean,scale)
-    removed_rows_restored = restore_row(np.array(removed_rows),mean,scale)
+    data_without_outliers = normalization.restore(data)
+    removed_rows_restored = normalization.restore(np.array(removed_rows))
 
     df1 = pd.DataFrame(data_without_outliers, columns=columns)
     df2 = pd.DataFrame(removed_rows_restored, columns=columns)
