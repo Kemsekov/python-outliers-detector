@@ -8,6 +8,7 @@ from functions.utils import *
 from functions.build_model import build_model
 import matplotlib.pyplot as plt
 
+high_error_sorted_indices=[]
 
 root = tk.Tk()
 models_count = tk.IntVar(value=5)
@@ -16,6 +17,7 @@ test_split = tk.DoubleVar(value=0.1)
 input_dimensions = tk.IntVar()
 elements_to_show = tk.IntVar(value=10) # max elements to show on plot
 rows_to_remove = tk.StringVar()
+n_rows_to_remove = tk.IntVar()
 working_dir=""
 
 columns: pd.Index = None #dataset csv columns
@@ -51,6 +53,7 @@ def find_xi_grid_search():
     xi.set(best_xi)
     return
 def compute_errors():
+    global high_error_sorted_indices
     np.random.shuffle(shuffled_data)
     # test size dependent on test_split
     test_size = int(len(data)*test_split.get())
@@ -77,14 +80,14 @@ def compute_errors():
     #   increase xi and repeat process
     max_elements = elements_to_show.get()
     
-    sorted_indices = np.argsort(-avg_error)[:max_elements]
+    high_error_sorted_indices = np.argsort(-avg_error)[:max_elements]
     X = np.arange(0,max_elements)
 
     plt.clf()
     plt.gcf().set_size_inches(6,7,forward=True)
     plt.subplot(2,1,1)
-    plt.plot(X,avg_error[sorted_indices],marker='.')
-    plt.xticks(X, labels=sorted_indices)
+    plt.plot(X,avg_error[high_error_sorted_indices],marker='.')
+    plt.xticks(X, labels=high_error_sorted_indices)
     plt.xlabel("outlier id")
     plt.ylabel("prediction error")
 
@@ -97,13 +100,22 @@ def compute_errors():
     plt.show()
 def remove_rows():
     input_str = rows_to_remove.get()
-    if str.lower(input_str)=="": return
-    row_indices = [int(r) for r in input_str.split(" ")]
-    global removed_rows,data
-    for r in row_indices:
-        removed_rows.append(data[r,:])
-    data = np.delete(data,row_indices,axis=0)
-    print(f'removed {input_str}')
+    if str.lower(input_str)!="":
+        row_indices = [int(r) for r in input_str.split(" ")]
+        global removed_rows,data
+        for r in row_indices:
+            removed_rows.append(data[r,:])
+        data = np.delete(data,row_indices,axis=0)
+        print(f'removed {input_str}')
+
+    count_to_remove = n_rows_to_remove.get()
+    if(count_to_remove != 0):
+        row_indices = high_error_sorted_indices[:count_to_remove]
+        for r in row_indices:
+            removed_rows.append(data[r,:])
+        data = np.delete(data,row_indices,axis=0)
+        print(f'removed N {count_to_remove}')
+
 def run_iteration():
     if data is None: 
         print("No database selected")
@@ -112,6 +124,7 @@ def run_iteration():
     remove_rows()
     compute_errors()
     rows_to_remove.set("")
+    n_rows_to_remove.set(0)
 # save values without outliers in same directory
 def open_file():
     global data,normalization,columns,shuffled_data,working_dir, iteration_errors, removed_rows
@@ -184,6 +197,13 @@ def gui():
         # Otherwise, return False
         return False
     vcmd = root.register(numbers_list_validation)
+
+    label = tk.Label(root,text="N rows to remove: ",font=hack_font)
+    label.grid(row=7,column=0)
+
+    entry = tk.Entry(root,textvariable=n_rows_to_remove,font=hack_font)
+    entry.grid(row=7,column=1)
+
     label = tk.Label(root,text="rows to remove: ",font=hack_font)
     label.grid(row=6,column=0)
 
