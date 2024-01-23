@@ -13,9 +13,10 @@ def build_model(X,Y,xi):
 
 
 regularization_coefficient = 0.01
+regularization=regularizers.L2(regularization_coefficient)
 learning_rate = 0.001
 epochs=100
-leaky_relu = layers.LeakyReLU()
+activation = layers.Tanh()
 
 # build 2 layers NN
 def build_model_2_layers(X,Y,xi):
@@ -43,14 +44,14 @@ def build_model_2_layers(X,Y,xi):
     model.add(
         layers.Dense(
             n,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             N_y, 
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
     # model.summary()
     model.compile(
         optimizer=optimizers.Adam(learning_rate), 
@@ -89,20 +90,20 @@ def build_model_3_layers(X,Y,xi,alpha):
     model.add(
         layers.Dense(
             L_size,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             K_size,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             N_y, 
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
     # model.summary()
     model.compile(
         optimizer=optimizers.Adam(learning_rate), 
@@ -144,26 +145,26 @@ def build_model_4_layers(X,Y,xi,alpha1,alpha2):
     model.add(
         layers.Dense(
             L_size,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             K1_size,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             K2_size,
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
 
     model.add(
         layers.Dense(
             N_y, 
-            activation=leaky_relu,
-            kernel_regularizer=regularizers.L2(regularization_coefficient)))
+            activation=activation,
+            kernel_regularizer=regularization))
     # model.summary()
     model.compile(
         optimizer=optimizers.Adam(learning_rate), 

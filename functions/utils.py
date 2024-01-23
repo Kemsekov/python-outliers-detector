@@ -119,23 +119,13 @@ def load_dataset(working_dir,dataset):
     data_original = pd.read_csv(f"{working_dir}/{dataset}").dropna()
     data=data_original.to_numpy(dtype='float32')
 
-    if os.path.isfile(f"{working_dir}/meta.json"):
-        with open(f"{working_dir}/meta.json") as f:
-            meta = json.loads(f.read())
-        translation = np.array(meta["translation"],dtype="float32")
-        scale = np.array(meta["scale"],dtype="float32")
-        norm = Normalization(translation,scale)
-        data = norm.transform(data)
-    else:
-        # make it zero centred by subtracting median
-        norm = Normalization()
-        data = norm.fit(data)
-
-        with open(f"{working_dir}/meta.json","w") as f:
-            f.write(json.dumps({
-                "translation":[float(i) for i in norm.translation],
-                "scale": [float(i) for i in norm.scale]
-            }))
+    with open(f"{working_dir}/meta.json") as f:
+        meta = json.loads(f.read())
+    translation = np.array(meta["translation"],dtype="float32")
+    scale = np.array(meta["scale"],dtype="float32")
+    norm = Normalization(translation,scale)
+    data = norm.transform(data)
+   
     return data,norm
 
 def get_prediction_errors(data,model,data_input_split):

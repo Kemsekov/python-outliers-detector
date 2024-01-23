@@ -6,7 +6,7 @@ class Normalization:
         self.scale=scale
 
     def fit(self,X : np.ndarray):
-        self.translation = np.median(X,axis=0)
+        self.translation = np.mean(X,axis=0)
         self.scale = np.std(X,axis=0)
         return self.transform(X)
     
