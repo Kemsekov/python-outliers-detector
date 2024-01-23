@@ -37,6 +37,9 @@ Higher `xi` makes model to prone to overfit but increases it's capacity
 
 `rows to remove` - a list of whole numbers of rows to remove (possible outliers)
 
+`rows to remove` - a list of whole numbers of rows to remove (possible outliers)
+
+
 Buttons
 
 `run iteration` - builds `count of models` models, find error on all samples and averages this error over all models

@@ -1,4 +1,4 @@
-from keras import layers, regularizers, losses, optimizers, metrics
+from keras import layers, regularizers, losses, optimizers, metrics, activations
 import keras
 from functions.utils import *
 
@@ -16,7 +16,7 @@ regularization_coefficient = 0.01
 regularization=regularizers.L2(regularization_coefficient)
 learning_rate = 0.001
 epochs=100
-activation = layers.Tanh()
+activation = activations.tanh
 
 # build 2 layers NN
 def build_model_2_layers(X,Y,xi):
