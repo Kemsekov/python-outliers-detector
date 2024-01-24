@@ -18,6 +18,9 @@ input_dimensions = tk.IntVar()
 elements_to_show = tk.IntVar(value=10) # max elements to show on plot
 rows_to_remove = tk.StringVar()
 n_rows_to_remove = tk.IntVar()
+show_indices = tk.BooleanVar(value=True)
+avg_error : np.ndarray[np.float64] = None
+
 working_dir=""
 
 columns: pd.Index = None #dataset csv columns
@@ -45,15 +48,13 @@ def find_xi_grid_search():
         print("Open dataset")
         return
     global xi
-    import multiprocessing
-    pool = multiprocessing.Pool(os.cpu_count())
-    scores = pool.map(score_function, np.arange(0, 0.5, 0.05))
+    scores = [score_function(xi_) for xi_ in np.arange(0, 0.5, 0.1)]
     best_score = min(scores)
-    best_xi = np.arange(0.0, 0.5, 0.05)[scores.index(best_score)]
+    best_xi = np.arange(0.0, 0.5, 0.1)[scores.index(best_score)]
     xi.set(best_xi)
     return
 def compute_errors():
-    global high_error_sorted_indices
+    global avg_error
     np.random.shuffle(shuffled_data)
     # test size dependent on test_split
     test_size = int(len(data)*test_split.get())
@@ -70,14 +71,10 @@ def compute_errors():
     avg_model_error = np.average(avg_error)
     iteration_errors.append(avg_model_error)
     print(f"Avg model error: {avg_model_error}")
-    
-    # plot avg_test_error -> it is total model error
-    # ask user for outlier id
-    # if is outlier is among first N elements
-    #   Remove these outliers from `data`` and rebuilt models
-    #   
-    # if there is no outliers among first N elements.
-    #   increase xi and repeat process
+
+def plot():
+    global high_error_sorted_indices,avg_error
+    if avg_error is None: return
     max_elements = elements_to_show.get()
     
     high_error_sorted_indices = np.argsort(-avg_error)[:max_elements]
@@ -87,7 +84,8 @@ def compute_errors():
     plt.gcf().set_size_inches(6,7,forward=True)
     plt.subplot(2,1,1)
     plt.plot(X,avg_error[high_error_sorted_indices],marker='.')
-    plt.xticks(X, labels=high_error_sorted_indices)
+    if(show_indices.get()):
+        plt.xticks(X, labels=high_error_sorted_indices)
     plt.xlabel("outlier id")
     plt.ylabel("prediction error")
 
@@ -98,6 +96,7 @@ def compute_errors():
 
     plt.ion()
     plt.show()
+
 def remove_rows():
     input_str = rows_to_remove.get()
     if str.lower(input_str)!="":
@@ -123,9 +122,10 @@ def run_iteration():
     print(f"run")
     remove_rows()
     compute_errors()
+    plot()
     rows_to_remove.set("")
     n_rows_to_remove.set(0)
-# save values without outliers in same directory
+
 def open_file():
     global data,normalization,columns,shuffled_data,working_dir, iteration_errors, removed_rows
     dataset = fd.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -141,6 +141,7 @@ def open_file():
     iteration_errors = []
     removed_rows = []
     input_dimensions.set(-1)
+
 def save_results():
     if data is None: 
         print("No dataset is opened")
@@ -221,6 +222,12 @@ def gui():
 
     button = tk.Button(root, text="find xi", command=find_xi_grid_search,font=hack_font)
     button.grid(row=4,column=2)
+
+    checkbox = tk.Checkbutton(root,text="show indices",variable=show_indices,font=hack_font)
+    checkbox.grid(row=5,column=2)
+
+    checkbox = tk.Button(root,text="plot",font=hack_font,command=plot)
+    checkbox.grid(row=6,column=2)
 
     root.geometry("800x400")
     root.mainloop()
