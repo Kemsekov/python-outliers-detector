@@ -34,6 +34,11 @@ Higher `xi` makes model to prone to overfit but increases it's capacity
 `elements to show` - how many elements to show on the graph.
 
 `input dimensions` - size of input dimensions for models.
+All first `k` values in `csv` file is treated as input values for models,
+meanwhile all remaining values are model output that they must predict.
+You can set this value to size of output dimensions, so default `-1` means that
+all values except the last one in csv file is input values, meanwhile the least one
+is regression value that we need to predict.
 
 `rows to remove` - a list of whole numbers of rows to remove (possible outliers)
 
