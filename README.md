@@ -37,7 +37,8 @@ Higher `xi` makes model to prone to overfit but increases it's capacity
 
 `rows to remove` - a list of whole numbers of rows to remove (possible outliers)
 
-`rows to remove` - a list of whole numbers of rows to remove (possible outliers)
+`N rows to remove` - a number of samples with highest error to remove
+
 
 
 Buttons
@@ -45,6 +46,8 @@ Buttons
 `run iteration` - builds `count of models` models, find error on all samples and averages this error over all models
 and plots first `elements to show` samples with highest error, so you can see and deduce which are outliers.
 Also it plots average total error of models dependent on iteration index, so you can see how your error decreases as you remove more and more outliers.
+
+`plot` - replot the last iteration results with updated values `show indices` checkbox and `elements to show`
 
 `save results` - saves filtered from outliers data and outliers into different csv files in the same directory where dataset csv file is located.
 
@@ -59,6 +62,8 @@ in file `functions/build_model.py` we have sole method `build_model` that is use
 
 By default it is using 2 layers with same setup as [described in this paper](https://www.warse.org/IJATCSE/static/pdf/file/ijatcse139922020.pdf), but you can change it.
 
+# Error computation.
 
+By default cross validation on test data split on all models is used.
 
 
