@@ -7,6 +7,7 @@ import pandas as pd
 from functions.utils import *
 from functions.build_model import build_model
 import matplotlib.pyplot as plt
+from sklearn.model_selection import cross_val_score
 
 high_error_sorted_indices=[]
 
@@ -34,12 +35,14 @@ normalization : Normalization
 iteration_errors = []
 removed_rows = []
 def score_function(xi):
-    np.random.shuffle(shuffled_data)
-    # test size dependent on test_split
-    test_size = int(len(data)*test_split.get())
-    train = shuffled_data[test_size:]
-    data_input_split=input_dimensions.get()
-    models = [build_model(train[:,:data_input_split],train[:,data_input_split:],xi) for i in range(0,models_count.get())]
+    models=[]
+    for i in range(0,models_count.get()):
+        np.random.shuffle(shuffled_data)
+        # test size dependent on test_split
+        test_size = int(len(data)*test_split.get())
+        train = shuffled_data[test_size:]
+        data_input_split=input_dimensions.get()
+        models.append(build_model(train[:,:data_input_split],train[:,data_input_split:],xi))
     avg_error = average_prediction_error(data,models,data_input_split)
     avg_model_error = np.average(avg_error)
     return avg_model_error
@@ -55,14 +58,17 @@ def find_xi_grid_search():
     return
 def compute_errors():
     global avg_error
-    np.random.shuffle(shuffled_data)
-    # test size dependent on test_split
-    test_size = int(len(data)*test_split.get())
-    train = shuffled_data[test_size:]
-    # ironically we don't use test samples to get model precision because it is way too much random
-    test = shuffled_data[:test_size]
-    data_input_split=input_dimensions.get()
-    models = [build_model(train[:,:data_input_split],train[:,data_input_split:],xi.get()) for i in range(0,models_count.get())]
+    models = []
+    for i in range(0,models_count.get()):
+        np.random.shuffle(shuffled_data)
+        # test size dependent on test_split
+        test_size = int(len(data)*test_split.get())
+        train = shuffled_data[test_size:]
+        # ironically we don't use test samples to get model precision because it is way too much random
+        test = shuffled_data[:test_size]
+        data_input_split=input_dimensions.get()
+        
+        models.append(build_model(train[:,:data_input_split],train[:,data_input_split:],xi.get()))
     
     # error over all samples
     avg_error = average_prediction_error(data,models,data_input_split)
