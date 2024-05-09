@@ -7,7 +7,7 @@ import pandas as pd
 from functions.utils import *
 from functions.build_model import build_model
 import matplotlib.pyplot as plt
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RandomizedSearchCV, cross_val_score
 
 high_error_sorted_indices=[]
 
@@ -31,7 +31,7 @@ shuffled_data: np.ndarray[np.float32] # dataset copy that is used for shuffle
 
 data: np.ndarray[np.float32] = None
 normalization : Normalization
-
+RandomizedSearchCV()
 iteration_errors = []
 removed_rows = []
 def score_function(xi):
@@ -46,6 +46,7 @@ def score_function(xi):
     avg_error = average_prediction_error(data,models,data_input_split)
     avg_model_error = np.average(avg_error)
     return avg_model_error
+
 def find_xi_grid_search():
     if data is None:
         print("Open dataset")
@@ -56,6 +57,7 @@ def find_xi_grid_search():
     best_xi = np.arange(0.0, 0.5, 0.1)[scores.index(best_score)]
     xi.set(best_xi)
     return
+
 def compute_errors():
     global avg_error
     models = []
