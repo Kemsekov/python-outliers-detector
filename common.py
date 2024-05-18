@@ -6,7 +6,7 @@ import numpy as np
 
 
 from sklearn import metrics
-from sklearn.base import ClassifierMixin
+from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_predict, cross_validate
 
@@ -30,8 +30,30 @@ def cross_val_score_mean_std(scores,name):
     print("Mean ",np.mean(scores))
     print("Std ",np.std(scores))
 
-# scoring = metrics.mean_absolute_error
-def run_iteration(X,y,model,pred_scoring,evaluate_scoring,cv=5,repeats=3,seed = 42):
+def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evaluate_scoring,cv=5,repeats=3,seed = 42):
+    """
+    Computes cross-validated scores for each sample and total model error.
+
+    X: independent features
+
+    y: dependent features for regression or for classification
+
+    model: classification or regression model that implements `ClassifierMixin` or `RegressorMixin`
+    
+    pred_loss: function that computes loss from true and predicted values. see `sklearn.metrics`
+
+    evaluate_scoring: function that returns score from true and predicted values. see `sklearn.metrics`
+
+    cv: cross-validation used for cross_val_predict. Use integers
+
+    repeats: how many times repeat cross validation predictions on shuffled data
+
+    seed: random seed
+
+    Returns:
+    mean of prediction scores, also normalized relative to class occurrence (for classification)
+    total mean evaluation score for model from all folds/repeats
+    """
     total_errors = []
     pred_scores = []
     shuffle = np.arange(0,len(y))
@@ -57,7 +79,6 @@ def run_iteration(X,y,model,pred_scoring,evaluate_scoring,cv=5,repeats=3,seed = 
 
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method)
 
-
         if is_classification:
             def class_vector(expected,actual): 
                 v = np.zeros_like(actual)
@@ -65,9 +86,9 @@ def run_iteration(X,y,model,pred_scoring,evaluate_scoring,cv=5,repeats=3,seed = 
                 return v
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error
-            pred_score = [pred_scoring(class_vector(true_class,pred_class),pred_class)/classes_counts[true_class] for true_class,pred_class in zip(y_shuffled,pred)]
+            pred_score = [pred_loss(class_vector(true_class,pred_class),pred_class)/classes_counts[true_class] for true_class,pred_class in zip(y_shuffled,pred)]
         else:
-            pred_score = [pred_scoring([a],[b]) for a,b in zip(y_shuffled,pred)]
+            pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
         
         pred_score=np.array(pred_score)
 
@@ -101,7 +122,7 @@ def negate(func):
 def find_outliers(
         X,y,special_model,
         outlier_remove_partition = 0.05,
-        pred_scoring=metrics.mean_absolute_error,
+        pred_loss=metrics.mean_absolute_error,
         evaluate_loss=metrics.mean_squared_error,
         cv=6,
         repeats=3,
@@ -119,7 +140,7 @@ def find_outliers(
     special_model: model which is used to determine samples with highest error
     outlier_remove_partition: which fraction of left non-outlier samples to remove in each iteration
     
-    pred_scoring: scoring used for samples. Higher values means sample is more likely to be an outlier
+    pred_loss: loss used for samples. Higher values means sample is more likely to be an outlier
     evaluate_loss: loss used for model performance evaluation
     cv: integer, how many folds to do on cross-validations to do on model fitting
     
@@ -149,11 +170,11 @@ def find_outliers(
         X_cleaned=np.array(X_cleaned)
         y_cleaned=np.array(y_cleaned)
 
-        pred, eval_score = run_iteration(
+        pred_loss_values, eval_score = cross_val_scores(
             X=X_cleaned,
             y=y_cleaned,
             model=special_model,
-            pred_scoring=pred_scoring,
+            pred_loss=pred_loss,
             evaluate_scoring=evaluate_loss,
             cv=cv,
             repeats=repeats,
@@ -171,7 +192,7 @@ def find_outliers(
         stack_count=0
         prev_score=eval_score
 
-        indices = np.argsort(-pred)
+        indices = np.argsort(-pred_loss_values)
         to_remove_count = int(outlier_remove_partition*len(indices))
         if to_remove_count==0: break
 
@@ -182,7 +203,7 @@ def find_outliers(
         indices=indices[:25]
         x=np.arange(0,len(indices))
         plt.figure(figsize=(8,5))
-        plt.plot(x,pred[indices])
+        plt.plot(x,pred_loss_values[indices])
         plt.xticks(x,labels=indices)
         plt.xlabel("Sample")
         plt.ylabel("Prediction score")
