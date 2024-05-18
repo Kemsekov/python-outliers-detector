@@ -41,6 +41,14 @@ def run_iteration(X,y,model,pred_scoring,evaluate_scoring,cv=5,repeats=3,seed = 
         pred_method = "predict_proba"
     else:
         pred_method = "predict"
+
+    # count a size of each class as a fraction relative to total data length
+    if is_classification:
+        classes, counts = np.unique(y,return_counts=True)
+        classes_counts={}
+        for class_,count in zip(classes,counts):
+            classes_counts[class_]=count/len(y)
+    
     for i in range(repeats):
         np.random.seed(i+seed)
         np.random.shuffle(shuffle)
@@ -48,12 +56,16 @@ def run_iteration(X,y,model,pred_scoring,evaluate_scoring,cv=5,repeats=3,seed = 
         X_shuffled = X[shuffle]
 
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method)
+
+
         if is_classification:
             def class_vector(expected,actual): 
                 v = np.zeros_like(actual)
                 v[expected]=1
                 return v
-            pred_score = [pred_scoring(class_vector(a,b),b) for a,b in zip(y_shuffled,pred)]
+            # compute errors relative to each class size, so smaller classes will have greater impact on total
+            # prediction error
+            pred_score = [pred_scoring(class_vector(true_class,pred_class),pred_class)/classes_counts[true_class] for true_class,pred_class in zip(y_shuffled,pred)]
         else:
             pred_score = [pred_scoring([a],[b]) for a,b in zip(y_shuffled,pred)]
         
