@@ -153,10 +153,6 @@ def find_outliers(
     Returns: array of outlier indices, total score of model prediction with given outliers removed
     """
 
-    # repeatedly update sample_weights in such a way that sum(sample_weights) = len(X)
-
-    sample_weight = np.ones_like(y)
-
     prev_eval_score = float('inf')
     prev_outliers=[]
 
@@ -174,9 +170,10 @@ def find_outliers(
             cv=cv,
             repeats=repeats,
             seed=seed)
-        if plot: print("evaluate score ",eval_score)
+        if plot: print("Evaluate score ",eval_score)
         
         if eval_score>prev_eval_score: 
+            if plot: print("Removed all outliers. Stopping execution.")
             outliers_mask[prev_outliers]=False
             break
 
