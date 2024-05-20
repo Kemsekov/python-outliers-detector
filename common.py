@@ -83,8 +83,9 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error, so algorithm will 
             # pred_score = (1-pred[pred_indices,y_shuffled])**2 * classes_counts[y_shuffled]
+            true_class_pred=pred[pred_indices,y_shuffled]
 
-            pred_score = (1-pred[pred_indices,y_shuffled])**2
+            pred_score = (1-true_class_pred)**2
         else:
             pred_score= (y_shuffled-pred)**2
             # pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
@@ -92,8 +93,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
         pred_score=np.array(pred_score)
 
         if is_classification:
-            diff_from_true_class=np.array([p[c] for p,c in zip(pred,y_shuffled)])
-            total_error=evaluate_scoring(y_ones,diff_from_true_class)
+            total_error=evaluate_scoring(y_ones,true_class_pred)
         else:
             total_error=evaluate_scoring(y_shuffled,pred)
         
