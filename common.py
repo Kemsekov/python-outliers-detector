@@ -76,32 +76,23 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
-        print("cross val predict")
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1)
-        print("filling pred_score...")
         if is_classification:
-            def class_vector(expected,actual): 
-                v = np.zeros_like(actual)
-                v[expected]=1
-                return v
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error
             
-            # pred_class is vector
-            pred_score = [pred_loss(class_vector(true_class,pred_class),pred_class)/classes_counts[true_class] for true_class,pred_class in zip(y_shuffled,pred)]
+            pred_score = (1-pred[np.arange(len(pred)),y_shuffled])**2/classes_counts[y_shuffled]
         else:
             pred_score= (y_shuffled-pred)**2
             # pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
         
         pred_score=np.array(pred_score)
-        print("evaluate scoring...")
 
         if is_classification:
             diff_from_true_class=np.array([p[c] for p,c in zip(pred,y_shuffled)])
             total_error=evaluate_scoring(np.ones_like(y_shuffled),diff_from_true_class)
         else:
             total_error=evaluate_scoring(y_shuffled,pred)
-        print("inv shuffle")
         inv_shuffle=np.zeros_like(shuffle)
         inv_shuffle[shuffle]=np.arange(len(shuffle))
 
@@ -110,7 +101,6 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
     
     pred_scores=np.array(pred_scores)
     total_error=np.array(total_error)
-    print("return")    
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
 def get_full_data(X,y):
