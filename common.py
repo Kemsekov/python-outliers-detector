@@ -12,16 +12,16 @@ from sklearn.model_selection import cross_val_predict, cross_validate
 
 def XGB_search_params():
     params = {
-        'max_bin': [256,512,1024],
-        'max_depth':np.arange(1,7),
-        'max_leaves':[15,20,25,30,40],
-        'n_estimators':[2,5,10,15,20,40],
-        'learning_rate':[0.01,0.05,0.1,0.3],
-        'subsample':[0.1,0.2,0.5,0.7],
-        'colsample_bytree':[0.1,0.3,0.5,0.8,0.95],
-        'min_child_weight': [1,3, 5, 7, 10],
-        'reg_lambda':[0.4, 0.6, 0.8, 1, 1.2, 1.4],
-        'gamma': [0, 0.5, 1, 1.5, 2, 2.5, 5],
+        # 'max_bin': [256,512,1024],
+        'max_depth':np.arange(2,12),
+        # 'max_leaves':[15,20,25,30,40],
+        'n_estimators':np.arange(2,80,20),
+        # 'learning_rate':[0.01,0.05,0.1,0.3],
+        'colsample_bytree':np.random.uniform(0,1,size=5),
+        'min_child_weight': np.arange(0,10,2),
+        'reg_alpha' : np.arange(0,100,10),
+        'reg_lambda':np.random.uniform(0,1,size=5),
+        'gamma': np.arange(1,9),
     }
     return params
 
@@ -67,7 +67,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
     # count a size of each class as a fraction relative to total data length
     if is_classification:
         classes, counts = np.unique(y,return_counts=True)
-        classes_counts={}
+        classes_counts=np.zeros(shape=(np.max(classes)+1))
         for class_,count in zip(classes,counts):
             classes_counts[class_]=count/len(y)
     
@@ -76,9 +76,9 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
-
-        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method)
-
+        print("cross val predict")
+        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1)
+        print("filling pred_score...")
         if is_classification:
             def class_vector(expected,actual): 
                 v = np.zeros_like(actual)
@@ -86,18 +86,22 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
                 return v
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error
+            
+            # pred_class is vector
             pred_score = [pred_loss(class_vector(true_class,pred_class),pred_class)/classes_counts[true_class] for true_class,pred_class in zip(y_shuffled,pred)]
         else:
-            pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
+            pred_score= (y_shuffled-pred)**2
+            # pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
         
         pred_score=np.array(pred_score)
+        print("evaluate scoring...")
 
         if is_classification:
             diff_from_true_class=np.array([p[c] for p,c in zip(pred,y_shuffled)])
             total_error=evaluate_scoring(np.ones_like(y_shuffled),diff_from_true_class)
         else:
             total_error=evaluate_scoring(y_shuffled,pred)
-        
+        print("inv shuffle")
         inv_shuffle=np.zeros_like(shuffle)
         inv_shuffle[shuffle]=np.arange(len(shuffle))
 
@@ -106,7 +110,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
     
     pred_scores=np.array(pred_scores)
     total_error=np.array(total_error)
-    
+    print("return")    
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
 def get_full_data(X,y):
@@ -129,7 +133,8 @@ def find_outliers(
         iterations = 5,
         seed = 42,
         max_stack_count=2,
-        plot=False):
+        plot=False,
+        elements_to_plot=25):
     """
     Finds outliers in a data by repeatedly fitting a special model and selecting samples with worst prediction performance as outliers.
     
@@ -169,6 +174,8 @@ def find_outliers(
 
         X_cleaned=np.array(X_cleaned)
         y_cleaned=np.array(y_cleaned)
+        if plot:
+            print("computing cross_val_scores...")
 
         pred_loss_values, eval_score = cross_val_scores(
             X=X_cleaned,
@@ -200,11 +207,10 @@ def find_outliers(
         outliers=np.concatenate([outliers,prev_outliers])
 
         if not plot: continue
-        indices=indices[:25]
+        indices=indices[:elements_to_plot]
         x=np.arange(0,len(indices))
         plt.figure(figsize=(8,5))
         plt.plot(x,pred_loss_values[indices])
-        plt.xticks(x,labels=indices)
         plt.xlabel("Sample")
         plt.ylabel("Prediction score")
         plt.show()
