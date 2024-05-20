@@ -13,13 +13,13 @@ from sklearn.model_selection import cross_val_predict, cross_validate
 def XGB_search_params():
     params = {
         # 'max_bin': [256,512,1024],
-        'max_depth':np.arange(2,12),
+        'max_depth':np.arange(2,12,2),
         # 'max_leaves':[15,20,25,30,40],
         'n_estimators':np.arange(2,80,20),
         # 'learning_rate':[0.01,0.05,0.1,0.3],
         'colsample_bytree':np.random.uniform(0,1,size=5),
         'min_child_weight': np.arange(0,10,2),
-        'reg_alpha' : np.arange(0,100,10),
+        'reg_alpha' : np.arange(0,100,20),
         'reg_lambda':np.random.uniform(0,1,size=5),
         'gamma': np.arange(1,9),
     }
@@ -30,7 +30,7 @@ def cross_val_score_mean_std(scores,name):
     print("Mean ",np.mean(scores))
     print("Std ",np.std(scores))
 
-def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42):
+def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
     """
     Computes cross-validated scores for each sample and total model error.
 
@@ -78,7 +78,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
-        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1)
+        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
         if is_classification:
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error
@@ -122,8 +122,8 @@ def find_outliers(
         cv=6,
         repeats=3,
         iterations = 5,
+        gamma = 0.2,
         seed = 42,
-        max_stack_count=2,
         plot=False,
         elements_to_plot=25):
     """
@@ -136,76 +136,64 @@ def find_outliers(
     special_model: model which is used to determine samples with highest error
     outlier_remove_partition: which fraction of left non-outlier samples to remove in each iteration
     
-    pred_loss: loss used for samples. Higher values means sample is more likely to be an outlier
-    evaluate_loss: loss used for model performance evaluation
-    cv: integer, how many folds to do on cross-validations to do on model fitting
-    
     repeats: integer, how many cross-validations to do. Each repeat shuffles data runs cross-validation on it again and
     then algorithm averages predictions from all such repeats.
     
-    iterations: how many iterations to do
-    
     seed: algorithm random seed
-    
-    max_stack_count: max count of non-improving iterations allowed before algorithm stops
 
     plot: render results or not
     
     Returns: array of outlier indices, total score of model prediction with given outliers removed
     """
-    outliers=[]
-    prev_outliers = []
-    prev_score = float('inf')
 
-    stack_count = 0
+    # repeatedly update sample_weights in such a way that sum(sample_weights) = len(X)
 
-    for iteration in range(iterations):
-        X_cleaned = [row for i,row in enumerate(X) if i not in outliers]
-        y_cleaned = [row for i,row in enumerate(y) if i not in outliers]
+    sample_weight = np.ones_like(y)
 
-        X_cleaned=np.array(X_cleaned)
-        y_cleaned=np.array(y_cleaned)
-        if plot:
-            print("computing cross_val_scores...")
+    prev_eval_score = float('inf')
+
+    outliers_mask = np.zeros_like(y,dtype=bool)
+    for i in range(iterations):
+
+        X_clean = X[~outliers_mask]
+        y_clean = y[~outliers_mask]
 
         pred_loss_values, eval_score = cross_val_scores(
-            X=X_cleaned,
-            y=y_cleaned,
+            X=X_clean,
+            y=y_clean,
             model=special_model,
             evaluate_scoring=evaluate_loss,
             cv=cv,
             repeats=repeats,
-            seed=seed+iteration)
+            seed=seed)
         if plot: print("evaluate score ",eval_score)
+        
+        if eval_score>prev_eval_score: break
+        prev_eval_score=eval_score
 
-        if eval_score>prev_score: 
-            outliers=[o for o in outliers if o not in prev_outliers]
-            prev_outliers=[]
-            outlier_remove_partition/=2
-            stack_count+=1
-            seed-=1
-            if stack_count>=max_stack_count: break
-            continue
-        stack_count=0
-        prev_score=eval_score
+        # list of true indices of clean data relative to original data
+        clean_data_indices = np.where(~outliers_mask)[0].astype(int)
+        # indices of samples sorted by prediction error in ascending order
+        sorted_ind = np.argsort(-pred_loss_values)
+        indices = clean_data_indices[sorted_ind]
 
-        indices = np.argsort(-pred_loss_values)
-        to_remove_count = int(outlier_remove_partition*len(indices))
-        if to_remove_count==0: break
+        # elements to move to outliers
+        to_remove = int(outlier_remove_partition*len(y))
+        if to_remove==0: to_remove=1
 
-        prev_outliers=indices[:to_remove_count]
-        outliers=np.concatenate([outliers,prev_outliers])
+        outliers_mask[indices[:to_remove]]=True
+        outlier_remove_partition*=gamma
 
-        if not plot: continue
-        indices=indices[:elements_to_plot]
-        x=np.arange(0,len(indices))
-        plt.figure(figsize=(8,5))
-        plt.plot(x,pred_loss_values[indices])
-        plt.xlabel("Sample")
-        plt.ylabel("Prediction score")
-        plt.show()
-    if plot: print("total removed ",len(outliers))
-    return np.array(outliers,dtype=np.int32), eval_score
+        if plot:
+            to_render=sorted_ind[:elements_to_plot]
+            x=np.arange(0,len(to_render))
+            plt.figure(figsize=(8,5))
+            plt.plot(x,pred_loss_values[to_render])
+            plt.xlabel("Sample")
+            plt.ylabel("Prediction score")
+            plt.show()
+    outliers_indices = np.nonzero(outliers_mask)[0]
+    return outliers_indices, eval_score
 
 def cross_val_classification_report(model,X,y,cv, target_names = None):
     y_true = []
