@@ -121,11 +121,11 @@ def find_outliers(
         evaluate_loss=metrics.mean_squared_error,
         cv=6,
         repeats=3,
-        iterations = 5,
+        iterations = 3,
         gamma = 0.2,
         seed = 42,
         plot=False,
-        elements_to_plot=25):
+        elements_to_plot=40):
     """
     Finds outliers in a data by repeatedly fitting a special model and selecting samples with worst prediction performance as outliers.
     
