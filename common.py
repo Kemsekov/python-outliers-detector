@@ -158,6 +158,7 @@ def find_outliers(
     sample_weight = np.ones_like(y)
 
     prev_eval_score = float('inf')
+    prev_outliers=[]
 
     outliers_mask = np.zeros_like(y,dtype=bool)
     for i in range(iterations):
@@ -175,7 +176,10 @@ def find_outliers(
             seed=seed)
         if plot: print("evaluate score ",eval_score)
         
-        if eval_score>prev_eval_score: break
+        if eval_score>prev_eval_score: 
+            outliers_mask[prev_outliers]=False
+            break
+
         prev_eval_score=eval_score
 
         # list of true indices of clean data relative to original data
@@ -188,7 +192,8 @@ def find_outliers(
         to_remove = int(outlier_remove_partition*len(y))
         if to_remove==0: to_remove=1
 
-        outliers_mask[indices[:to_remove]]=True
+        prev_outliers=indices[:to_remove]
+        outliers_mask[prev_outliers]=True
         outlier_remove_partition*=gamma
 
         if plot:
