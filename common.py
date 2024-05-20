@@ -81,8 +81,10 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
         if is_classification:
             # compute errors relative to each class size, so smaller classes will have greater impact on total
-            # prediction error
-            pred_score = (1-pred[pred_indices,y_shuffled])**2/classes_counts[y_shuffled]
+            # prediction error, so algorithm will 
+            # pred_score = (1-pred[pred_indices,y_shuffled])**2 * classes_counts[y_shuffled]
+
+            pred_score = (1-pred[pred_indices,y_shuffled])**2
         else:
             pred_score= (y_shuffled-pred)**2
             # pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
@@ -118,11 +120,11 @@ def negate(func):
 def find_outliers(
         X,y,special_model,
         outlier_remove_partition = 0.05,
+        iterations = 3,
+        gamma = 0.2,
         evaluate_loss=metrics.mean_squared_error,
         cv=6,
         repeats=3,
-        iterations = 3,
-        gamma = 0.2,
         seed = 42,
         plot=False,
         elements_to_plot=40):
@@ -134,11 +136,16 @@ def find_outliers(
     y: output 1-dim data
 
     special_model: model which is used to determine samples with highest error
+
     outlier_remove_partition: which fraction of left non-outlier samples to remove in each iteration
     
     repeats: integer, how many cross-validations to do. Each repeat shuffles data runs cross-validation on it again and
     then algorithm averages predictions from all such repeats.
     
+    iterations: how many iterations to do of algorithm
+    
+    gamma: how much decrease `outlier_remove_partition` on each next iteration
+
     seed: algorithm random seed
 
     plot: render results or not
