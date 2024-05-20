@@ -30,7 +30,7 @@ def cross_val_score_mean_std(scores,name):
     print("Mean ",np.mean(scores))
     print("Std ",np.std(scores))
 
-def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evaluate_scoring,cv=5,repeats=3,seed = 42):
+def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42):
     """
     Computes cross-validated scores for each sample and total model error.
 
@@ -39,8 +39,6 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
     y: dependent features for regression or for classification
 
     model: classification or regression model that implements `ClassifierMixin` or `RegressorMixin`
-    
-    pred_loss: function that computes loss from true and predicted values. see `sklearn.metrics`
 
     evaluate_scoring: function that returns score from true and predicted values. see `sklearn.metrics`
 
@@ -71,6 +69,10 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
         for class_,count in zip(classes,counts):
             classes_counts[class_]=count/len(y)
     
+    pred_indices = np.arange(len(y))
+    y_ones = np.ones_like(y)
+    inv_shuffle=np.zeros_like(shuffle)
+
     for i in range(repeats):
         np.random.seed(i+seed)
         np.random.shuffle(shuffle)
@@ -80,8 +82,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
         if is_classification:
             # compute errors relative to each class size, so smaller classes will have greater impact on total
             # prediction error
-            
-            pred_score = (1-pred[np.arange(len(pred)),y_shuffled])**2/classes_counts[y_shuffled]
+            pred_score = (1-pred[pred_indices,y_shuffled])**2/classes_counts[y_shuffled]
         else:
             pred_score= (y_shuffled-pred)**2
             # pred_score = [pred_loss([a],[b]) for a,b in zip(y_shuffled,pred)]
@@ -90,11 +91,12 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,pred_loss,evalua
 
         if is_classification:
             diff_from_true_class=np.array([p[c] for p,c in zip(pred,y_shuffled)])
-            total_error=evaluate_scoring(np.ones_like(y_shuffled),diff_from_true_class)
+            total_error=evaluate_scoring(y_ones,diff_from_true_class)
         else:
             total_error=evaluate_scoring(y_shuffled,pred)
-        inv_shuffle=np.zeros_like(shuffle)
-        inv_shuffle[shuffle]=np.arange(len(shuffle))
+        
+        inv_shuffle[:]=0
+        inv_shuffle[shuffle]=pred_indices
 
         total_errors.append(total_error)
         pred_scores.append(pred_score[inv_shuffle])
@@ -116,7 +118,6 @@ def negate(func):
 def find_outliers(
         X,y,special_model,
         outlier_remove_partition = 0.05,
-        pred_loss=metrics.mean_absolute_error,
         evaluate_loss=metrics.mean_squared_error,
         cv=6,
         repeats=3,
@@ -171,7 +172,6 @@ def find_outliers(
             X=X_cleaned,
             y=y_cleaned,
             model=special_model,
-            pred_loss=pred_loss,
             evaluate_scoring=evaluate_loss,
             cv=cv,
             repeats=repeats,
