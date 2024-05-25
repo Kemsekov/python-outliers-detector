@@ -119,7 +119,7 @@ def negate(func):
 
 def find_outliers(
         X,y,special_model,
-        outlier_remove_partition = 0.05,
+        outliers_to_remove = 0.05,
         iterations = 3,
         gamma = 0.2,
         evaluate_loss=metrics.mean_squared_error,
@@ -137,7 +137,7 @@ def find_outliers(
 
     special_model: model which is used to determine samples with highest error
 
-    outlier_remove_partition: which fraction of left non-outlier samples to remove in each iteration
+    outliers_to_remove: how much outliers to remove from dataset
     
     repeats: integer, how many cross-validations to do. Each repeat shuffles data runs cross-validation on it again and
     then algorithm averages predictions from all such repeats.
@@ -152,6 +152,8 @@ def find_outliers(
     
     Returns: array of outlier indices, total score of model prediction with given outliers removed
     """
+
+    outlier_remove_partition=outliers_to_remove*(gamma-1)/(gamma**iterations-1)
 
     prev_eval_score = float('inf')
     prev_outliers=[]
