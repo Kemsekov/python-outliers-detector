@@ -175,7 +175,7 @@ def find_outliers(
         if plot: print("Evaluate score ",eval_score)
         
         if eval_score>prev_eval_score: 
-            if plot: print("Removed all outliers. Stopping execution.")
+            if plot: print("Increase in total error. Reverting previous and stopping...")
             outliers_mask[prev_outliers]=False
             break
 
