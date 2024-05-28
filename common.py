@@ -39,7 +39,6 @@ def cross_val_scores_regression(X,y,model : ClassifierMixin|RegressorMixin,evalu
     pred_method = "predict"
 
     pred_indices = np.arange(len(y))
-    y_ones = np.ones_like(y)
     inv_shuffle=np.zeros_like(shuffle)
 
     for i in range(repeats):
@@ -48,14 +47,8 @@ def cross_val_scores_regression(X,y,model : ClassifierMixin|RegressorMixin,evalu
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
-      
         pred_score= (y_shuffled-pred)**2
-        
-        pred_score=np.array(pred_score)
-
         total_error=evaluate_scoring(y_shuffled,pred)
-        
-        inv_shuffle[:]=0
         inv_shuffle[shuffle]=pred_indices
 
         total_errors.append(total_error)
@@ -96,12 +89,7 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin|RegressorMixin,e
         # pred_score = (1-pred[pred_indices,y_shuffled])**2 * classes_counts[y_shuffled]
         true_class_pred=pred[pred_indices,y_shuffled]
         pred_score = (1-true_class_pred)**2
-        
-        pred_score=np.array(pred_score)
-
         total_error=evaluate_scoring(y_ones,true_class_pred)
-        
-        inv_shuffle[:]=0
         inv_shuffle[shuffle]=pred_indices
 
         total_errors.append(total_error)
