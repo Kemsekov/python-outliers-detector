@@ -127,10 +127,10 @@ def negate(func):
 def find_outliers(
         X,y,special_model,
         outliers_to_remove = 0.05,
-        iterations = 4,
+        iterations = 5,
         gamma = 0.5,
         evaluate_loss=metrics.mean_squared_error,
-        cv=6,
+        cv=5,
         repeats=3,
         seed = 42,
         plot=False,
