@@ -63,11 +63,11 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
         pred_method = "predict"
 
     # count a size of each class as a fraction relative to total data length
-    if is_classification:
-        classes, counts = np.unique(y,return_counts=True)
-        classes_counts=np.zeros(shape=(np.max(classes)+1))
-        for class_,count in zip(classes,counts):
-            classes_counts[class_]=count/len(y)
+    # if is_classification:
+    #     classes, counts = np.unique(y,return_counts=True)
+    #     classes_counts=np.zeros(shape=(np.max(classes)+1))
+    #     for class_,count in zip(classes,counts):
+    #         classes_counts[class_]=count/len(y)
     
     pred_indices = np.arange(len(y))
     y_ones = np.ones_like(y)
