@@ -53,9 +53,6 @@ def cross_val_scores_regression(X,y,model : ClassifierMixin|RegressorMixin,evalu
 
         total_errors.append(total_error)
         pred_scores.append(pred_score[inv_shuffle])
-    
-    pred_scores=np.array(pred_scores)
-    total_error=np.array(total_error)
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
 
@@ -67,13 +64,6 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin|RegressorMixin,e
 
     pred_method = "predict_proba"
 
-    # count a size of each class as a fraction relative to total data length
-    # if is_classification:
-    #     classes, counts = np.unique(y,return_counts=True)
-    #     classes_counts=np.zeros(shape=(np.max(classes)+1))
-    #     for class_,count in zip(classes,counts):
-    #         classes_counts[class_]=count/len(y)
-    
     pred_indices = np.arange(len(y))
     y_ones = np.ones_like(y)
     inv_shuffle=np.zeros_like(shuffle)
@@ -85,8 +75,6 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin|RegressorMixin,e
         X_shuffled = X[shuffle]
         pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
         
-        # compute errors relative to each class size, so smaller classes will have greater impact on total
-        # pred_score = (1-pred[pred_indices,y_shuffled])**2 * classes_counts[y_shuffled]
         true_class_pred=pred[pred_indices,y_shuffled]
         pred_score = (1-true_class_pred)**2
         total_error=evaluate_scoring(y_ones,true_class_pred)
@@ -94,9 +82,6 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin|RegressorMixin,e
 
         total_errors.append(total_error)
         pred_scores.append(pred_score[inv_shuffle])
-    
-    pred_scores=np.array(pred_scores)
-    total_error=np.array(total_error)
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
 
