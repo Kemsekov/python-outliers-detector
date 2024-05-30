@@ -27,7 +27,16 @@ def cross_val_score_mean_std(scores,name):
     print("Std ",np.std(scores))
 
 def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+    """
+    Computes samples error from model prediction using repeated cross-validation.
+    For a model that have well fitted hyperparameters and is capable of learning
+    underlying data relation, this method provides a robust way to measure how much
+    each sample is off from general data distribution.
+    Resulting scores then could be used to find outliers in a data and remove them.
 
+    Returns:
+    mean errors on each sample, mean total model error from all repeats
+    """
     total_errors = []
     pred_scores = []
     shuffle = np.arange(0,len(y))
@@ -54,6 +63,16 @@ def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5
 
 
 def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+    """
+    Computes samples error from model class prediction using repeated cross-validation.
+    For a model that have well fitted hyperparameters and is capable of learning
+    underlying data relation, this method provides a robust way to measure how much
+    each sample is off from general data distribution.
+    Resulting scores then could be used to find outliers in a data and remove them.
+
+    Returns:
+    mean errors on each sample, mean total model error from all repeats
+    """
     total_errors = []
     pred_scores = []
     shuffle = np.arange(0,len(y))
@@ -83,7 +102,11 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring
 
 def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
     """
-    Computes cross-validated scores for each sample and total model error.
+    Computes samples error from model prediction using repeated cross-validation.
+    For a model that have well fitted hyperparameters and is capable of learning
+    underlying data relation, this method provides a robust way to measure how much
+    each sample is off from general data distribution.
+    Resulting scores then could be used to find outliers in a data and remove them.
 
     X: independent features
 
@@ -100,8 +123,7 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
     seed: random seed
 
     Returns:
-    mean of prediction scores, also normalized relative to class occurrence (for classification)
-    total mean evaluation score for model from all folds/repeats
+    mean errors on each sample, mean total model error from all repeats
     """
 
     is_classification = isinstance(model,ClassifierMixin)
