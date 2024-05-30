@@ -1,5 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
+from sklearn.decomposition import PCA
+
 
 def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str]):
     # Ensure the input is an ndarray

@@ -30,7 +30,7 @@ def cross_val_score_mean_std(scores,name):
     print("Mean ",np.mean(scores))
     print("Std ",np.std(scores))
 
-def cross_val_scores_regression(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
 
     total_errors = []
     pred_scores = []
@@ -57,7 +57,7 @@ def cross_val_scores_regression(X,y,model : ClassifierMixin|RegressorMixin,evalu
 
 
 
-def cross_val_scores_classification(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
     total_errors = []
     pred_scores = []
     shuffle = np.arange(0,len(y))
