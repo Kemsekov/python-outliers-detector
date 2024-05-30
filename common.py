@@ -175,7 +175,7 @@ def find_outliers(
 
     plot: render results or not
     
-    Returns: array of outlier indices, total score of model prediction with given outliers removed
+    Returns: array mask this is true where outlier is found, total score of model prediction with given outliers removed
     """
 
     outlier_remove_partition=outliers_to_remove*(gamma-1)/(gamma**iterations-1)
@@ -228,8 +228,7 @@ def find_outliers(
             plt.xlabel("Sample")
             plt.ylabel("Prediction score")
             plt.show()
-    outliers_indices = np.nonzero(outliers_mask)[0]
-    return outliers_indices, eval_score
+    return outliers_mask, eval_score
 
 def cross_val_classification_report(model,X,y,cv, target_names = None):
     y_true = []
