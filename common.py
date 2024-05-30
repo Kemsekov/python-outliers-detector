@@ -1,27 +1,23 @@
 
 from matplotlib import pyplot as plt
 import numpy as np
-
-
-
-
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_predict, cross_validate
+from sklearn.model_selection import cross_val_predict
 
 def XGB_search_params():
     params = {
         # 'max_bin': [256,512,1024],
-        'max_depth':np.arange(2,12,2),
+        'max_depth':        np.random.randint(2,12,size=5),
         # 'max_leaves':[15,20,25,30,40],
-        'n_estimators':np.arange(2,80,20),
+        'n_estimators':     np.random.randint(2,120,size=10),
         # 'learning_rate':[0.01,0.05,0.1,0.3],
-        'colsample_bytree':np.random.uniform(0,1,size=5),
-        'min_child_weight': np.arange(0,10,2),
-        'reg_alpha' : np.arange(0,100,20),
-        'reg_lambda':np.random.uniform(0,1,size=5),
-        'gamma': np.arange(1,9),
+        'colsample_bytree': np.random.uniform(0,1,size=5),
+        'min_child_weight': np.random.randint(0,15,size=5),
+        'reg_alpha' :       np.random.randint(0,120,size=10),
+        'reg_lambda':       np.random.uniform(0,1,size=5),
+        'gamma':            np.random.randint(1,12,size=5),
     }
     return params
 
