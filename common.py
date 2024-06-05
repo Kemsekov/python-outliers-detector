@@ -3,10 +3,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
-from sklearn.decomposition import KernelPCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
-from sklearn.model_selection import RandomizedSearchCV, cross_val_predict
+from sklearn.model_selection import cross_val_predict
 
 def XGB_search_params():
     params = {
@@ -306,53 +304,3 @@ def generate_colors_for_classification(y : np.ndarray,seed=42):
     for cls,color in zip(classes,colors):
         results[y==cls]=color
     return results
-
-from sklearn.metrics import r2_score, mean_absolute_error
-def kernel_pca_scorer(estimator,X,y=None):
-    """Computes r2 score of how good estimator can describe data in low-dimensions"""
-    X_reduced = estimator.transform(X)
-    X_preimage = estimator.inverse_transform(X_reduced)
-    score = r2_score(X, X_preimage)
-
-    if np.isnan(score): score = 0
-    return score
-
-class KernelPCAFitResult:
-    def __init__(self,kpca : KernelPCA, r2: float, X_transform : np.ndarray, data_scaler : StandardScaler) -> None:
-        self.kpca = kpca
-        """Kernel pca"""
-        self.r2 = r2
-        """r2 score of kernel pca performance"""
-        self.X_transform = X_transform
-        """Transformed of scaled X to low dimensions data"""
-        self.data_scaler = data_scaler
-        """Scaler used for data"""
-
-def optimalKernelPCA(X,n_components,cv=3,n_iter=200):
-    """Finds optimal kernel PCA using hyperparameters search"""
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    param_grid = {
-        "gamma": np.linspace(0.001, 1, 20),
-        "kernel": ["rbf", "sigmoid", "poly"],
-        "alpha":[0.1,1,3]
-    }
-    
-    max_iter = len(param_grid['gamma'])*len(param_grid['kernel'])*len(param_grid['alpha'])
-    n_iter = np.min([n_iter,max_iter])
-
-    kpca=KernelPCA(fit_inverse_transform=True,n_components=n_components, n_jobs=-1) 
-    grid_search = RandomizedSearchCV(
-        kpca, 
-        param_grid, 
-        cv=cv,
-        n_iter=n_iter,
-        n_jobs=-1, 
-        scoring=kernel_pca_scorer)
-    grid_search.fit(X_scaled)
-    kpca : KernelPCA= grid_search.best_estimator_
-    X_transform = kpca.transform(X_scaled)
-    
-    kpca_r2_score = grid_search.best_score_
-    return KernelPCAFitResult(kpca,kpca_r2_score, X_transform, scaler)
