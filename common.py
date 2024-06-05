@@ -3,8 +3,10 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.decomposition import KernelPCA
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import RandomizedSearchCV, cross_val_predict
 
 def XGB_search_params():
     params = {
@@ -26,7 +28,14 @@ def cross_val_score_mean_std(scores,name):
     print("Mean ",np.mean(scores))
     print("Std ",np.std(scores))
 
-def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+def cross_val_scores_regression(
+        X,y,
+        model : RegressorMixin,
+        evaluate_scoring,
+        cv=5,
+        repeats=3,
+        seed = 42, 
+        fit_params : dict = None):
     """
     Computes samples error from model prediction using repeated cross-validation.
     For a model that have well fitted hyperparameters and is capable of learning
@@ -51,7 +60,14 @@ def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
-        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
+        pred=cross_val_predict(
+            model,
+            X_shuffled,
+            y_shuffled,
+            cv=cv,
+            method=pred_method,
+            n_jobs=-1,
+            fit_params=fit_params)
         pred_score= (y_shuffled-pred)**2
         total_error=evaluate_scoring(y_shuffled,pred)
         inv_shuffle[shuffle]=pred_indices
@@ -60,9 +76,15 @@ def cross_val_scores_regression(X,y,model : RegressorMixin,evaluate_scoring,cv=5
         pred_scores.append(pred_score[inv_shuffle])
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
-
-
-def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+def cross_val_scores_classification(
+        X,y,
+        model : ClassifierMixin,
+        evaluate_scoring,
+        cv=5,
+        repeats=3,
+        seed = 42, 
+        fit_params : dict = None
+    ):
     """
     Computes samples error from model class prediction using repeated cross-validation.
     For a model that have well fitted hyperparameters and is capable of learning
@@ -88,7 +110,14 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
-        pred=cross_val_predict(model,X_shuffled,y_shuffled,cv=cv,method=pred_method,n_jobs=-1,fit_params=fit_params)
+        pred=cross_val_predict(
+            model,
+            X_shuffled,
+            y_shuffled,
+            cv=cv,
+            method=pred_method,
+            n_jobs=-1,
+            fit_params=fit_params)
         
         true_class_pred=pred[pred_indices,y_shuffled]
         pred_score = (1-true_class_pred)**2
@@ -99,8 +128,14 @@ def cross_val_scores_classification(X,y,model : ClassifierMixin,evaluate_scoring
         pred_scores.append(pred_score[inv_shuffle])
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
-
-def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring,cv=5,repeats=3,seed = 42, fit_params : dict = None):
+def cross_val_scores(
+        X,y,
+        model : ClassifierMixin|RegressorMixin,
+        evaluate_scoring,
+        cv=5,
+        repeats=3,
+        seed = 42, 
+        fit_params : dict = None):
     """
     Computes samples error from model prediction using repeated cross-validation.
     For a model that have well fitted hyperparameters and is capable of learning
@@ -128,9 +163,22 @@ def cross_val_scores(X,y,model : ClassifierMixin|RegressorMixin,evaluate_scoring
 
     is_classification = isinstance(model,ClassifierMixin)
     if is_classification:
-        return cross_val_scores_classification(X,y,model,evaluate_scoring,cv,repeats,seed,fit_params)
-    else:
-        return cross_val_scores_regression(X,y,model,evaluate_scoring,cv,repeats,seed,fit_params)
+        return cross_val_scores_classification(
+            X,y,
+            model,
+            evaluate_scoring,
+            cv,
+            repeats,
+            seed,
+            fit_params)
+    return cross_val_scores_regression(
+        X,y,
+        model,
+        evaluate_scoring,
+        cv,
+        repeats,
+        seed,
+        fit_params)
 
 def get_full_data(X,y):
     y_full_mask = ~np.isnan(y)
@@ -178,7 +226,8 @@ def find_outliers(
     Returns: array mask this is true where outlier is found, total score of model prediction with given outliers removed
     """
 
-    outlier_remove_partition=outliers_to_remove*(gamma-1)/(gamma**iterations-1)
+    outlier_remove_partition=\
+        outliers_to_remove*(gamma-1)/(gamma**iterations-1)
 
     prev_eval_score = float('inf')
     prev_outliers=[]
@@ -247,3 +296,63 @@ def cross_val_classification_report(model,X,y,cv, target_names = None):
 
     return classification_report(y_true,y_pred,target_names=target_names)
 
+def generate_colors_for_classification(y : np.ndarray,seed=42):
+    """Returns a color-representation of array y, where each unique class replaced with color"""
+    classes = np.sort(np.unique(y))
+    np.random.seed(seed)
+    colors = np.random.uniform(0,1,size=(len(classes),3))
+    results = np.zeros((len(y),3))
+
+    for cls,color in zip(classes,colors):
+        results[y==cls]=color
+    return results
+
+from sklearn.metrics import r2_score, mean_absolute_error
+def kernel_pca_scorer(estimator,X,y=None):
+    """Computes r2 score of how good estimator can describe data in low-dimensions"""
+    X_reduced = estimator.transform(X)
+    X_preimage = estimator.inverse_transform(X_reduced)
+    score = r2_score(X, X_preimage)
+
+    if np.isnan(score): score = 0
+    return score
+
+class KernelPCAFitResult:
+    def __init__(self,kpca : KernelPCA, r2: float, X_transform : np.ndarray, data_scaler : StandardScaler) -> None:
+        self.kpca = kpca
+        """Kernel pca"""
+        self.r2 = r2
+        """r2 score of kernel pca performance"""
+        self.X_transform = X_transform
+        """Transformed of scaled X to low dimensions data"""
+        self.data_scaler = data_scaler
+        """Scaler used for data"""
+
+def optimalKernelPCA(X,n_components,cv=3,n_iter=200):
+    """Finds optimal kernel PCA using hyperparameters search"""
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    param_grid = {
+        "gamma": np.linspace(0.001, 1, 20),
+        "kernel": ["rbf", "sigmoid", "poly"],
+        "alpha":[0.1,1,3]
+    }
+    
+    max_iter = len(param_grid['gamma'])*len(param_grid['kernel'])*len(param_grid['alpha'])
+    n_iter = np.min([n_iter,max_iter])
+
+    kpca=KernelPCA(fit_inverse_transform=True,n_components=n_components, n_jobs=-1) 
+    grid_search = RandomizedSearchCV(
+        kpca, 
+        param_grid, 
+        cv=cv,
+        n_iter=n_iter,
+        n_jobs=-1, 
+        scoring=kernel_pca_scorer)
+    grid_search.fit(X_scaled)
+    kpca : KernelPCA= grid_search.best_estimator_
+    X_transform = kpca.transform(X_scaled)
+    
+    kpca_r2_score = grid_search.best_score_
+    return KernelPCAFitResult(kpca,kpca_r2_score, X_transform, scaler)
