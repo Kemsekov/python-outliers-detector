@@ -1,2 +1,0 @@
-Before:
-r2 score: 0.92 
