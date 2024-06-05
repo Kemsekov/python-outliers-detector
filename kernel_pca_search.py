@@ -1,7 +1,7 @@
 
 import numpy as np
 from sklearn.decomposition import KernelPCA
-from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.metrics import r2_score
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.preprocessing import RobustScaler
 
@@ -15,7 +15,13 @@ def kernel_pca_scorer(estimator,X,y=None):
     return score
 
 class KernelPCASearchCV:
-    def __init__(self,n_components,cv=3,n_iter=200,scaler = RobustScaler()) -> None:
+    def __init__(self,n_components,cv=5,n_iter=-1,scaler = RobustScaler()) -> None:
+        """
+        n_components: components to use for pca
+        cv: cv to use for cross-validation
+        n_iter: iterations to do on parameters search. Put -1 to use all parameters space
+        scaler: data scaler to use
+        """
         self.kpca = KernelPCA(fit_inverse_transform=True,n_components=n_components, n_jobs=-1) 
         """Kernel pca"""
         self.score : float = float('nan')
