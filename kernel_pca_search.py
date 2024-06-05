@@ -24,9 +24,9 @@ class KernelPCASearchCV:
         """Scaler used for data"""
         self.cv=cv
         self.param_grid = {
-            "gamma": np.linspace(0.001, 1, 20),
+            "gamma": np.linspace(0.2, 4, 10),
             "kernel": ["rbf", "sigmoid", "poly"],
-            "alpha":[0.1,1,5]
+            "alpha":[0.001,0.1,1,5]
         }
         max_iter = \
             len(self.param_grid['gamma'])*\
@@ -36,9 +36,16 @@ class KernelPCASearchCV:
         if self.n_iter<=0: self.n_iter=max_iter
 
     def fit(self,X):
+        features = X.shape[1]
+
+        # make gamma parameter to be in a relative size to features dimensions
+        # so we scales around mean of gamma = 1/features
+        g_param = self.param_grid.copy()
+        g_param['gamma']=g_param['gamma']/features
+
         grid_search = RandomizedSearchCV(
             self.kpca, 
-            self.param_grid, 
+            g_param, 
             cv=self.cv,
             n_iter=self.n_iter,
             n_jobs=-1, 
