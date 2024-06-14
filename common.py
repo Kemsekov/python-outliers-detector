@@ -223,6 +223,11 @@ def find_outliers(
     
     Returns: array mask this is true where outlier is found, total score of model prediction with given outliers removed
     """
+    if gamma<=0 or gamma>1:
+        raise ValueError("gamma must be in range (0;1]")
+    
+    if outliers_to_remove<=0 or outliers_to_remove>1:
+        raise ValueError("outliers_to_remove must be in range (0;1]")
 
     outlier_remove_partition=\
         outliers_to_remove*(gamma-1)/(gamma**iterations-1)
