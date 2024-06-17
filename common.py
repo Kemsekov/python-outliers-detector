@@ -9,15 +9,14 @@ from sklearn.model_selection import cross_val_predict
 def XGB_search_params():
     params = {
         # 'max_bin': [256,512,1024],
-        'max_depth':        np.random.randint(2,12,size=5),
+        'max_depth':        [2,4,6,8,10],
         # 'max_leaves':[15,20,25,30,40],
-        'n_estimators':     np.random.randint(2,120,size=10),
-        # 'learning_rate':[0.01,0.05,0.1,0.3],
-        'colsample_bytree': np.random.uniform(0,1,size=5),
-        'min_child_weight': np.random.randint(0,15,size=5),
-        'reg_alpha' :       np.random.randint(0,120,size=10),
-        'reg_lambda':       np.random.uniform(0,1,size=5),
-        'gamma':            np.random.randint(1,12,size=5),
+        # 'n_estimators':     np.random.randint(2,120,size=10),
+        'colsample_bytree': [1, 0.8, 0.6, 0.4],
+        'min_child_weight': [1,2,5,7],
+        'gamma':            [0,2,5,15],
+        'eta':              [0.1,0.3,0.5]
+        # 'lambda':[0.5,1,1.5]
     }
     return params
 
