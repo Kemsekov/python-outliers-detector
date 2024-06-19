@@ -10,13 +10,11 @@ def XGB_search_params():
     params = {
         # 'max_bin': [256,512,1024],
         'max_depth':        [2,4,6,8,10],
-        # 'max_leaves':[15,20,25,30,40],
-        # 'n_estimators':     np.random.randint(2,120,size=10),
         'colsample_bytree': [1, 0.8, 0.6, 0.4],
         'min_child_weight': [1,2,5,7],
         'gamma':            [0,2,5,15],
-        'eta':              [0.1,0.3,0.5]
-        # 'lambda':[0.5,1,1.5]
+        'eta':              [0.1,0.3,0.5],
+        'lambda':           [0.2,1,2]
     }
     return params
 
@@ -73,6 +71,13 @@ def cross_val_scores_regression(
         pred_scores.append(pred_score[inv_shuffle])
     return np.mean(pred_scores,axis=0),np.mean(total_errors)
 
+def _classes_count(y):
+    classes = np.unique(y)
+    classes_count = np.zeros(np.max(classes)+1)
+    for cls in classes:
+        classes_count[cls]=np.count_nonzero(y==cls)
+    return classes_count
+
 def cross_val_scores_classification(
         X,y,
         model : ClassifierMixin,
@@ -80,7 +85,8 @@ def cross_val_scores_classification(
         cv=5,
         repeats=3,
         seed = 42, 
-        fit_params : dict = None
+        fit_params : dict = None,
+        class_weight_scale_power = 0.8
     ):
     """
     Computes samples error from model class prediction using repeated cross-validation.
@@ -88,6 +94,9 @@ def cross_val_scores_classification(
     underlying data relation, this method provides a robust way to measure how much
     each sample is off from general data distribution.
     Resulting scores then could be used to find outliers in a data and remove them.
+
+    class_weight_scale_power: how much to consider class size in computing scores for samples.
+    0 means to not consider class sizes in scores, 1 means linearly consider class sizes in scores
 
     Returns:
     mean errors on each sample, mean total model error from all repeats
@@ -102,11 +111,15 @@ def cross_val_scores_classification(
     y_ones = np.ones_like(y)
     inv_shuffle=np.zeros_like(shuffle)
 
+    classes_count = _classes_count(y)
+    scale = np.power(classes_count[y],class_weight_scale_power)
+
     for i in range(repeats):
         np.random.seed(i+seed)
         np.random.shuffle(shuffle)
         y_shuffled = y[shuffle]
         X_shuffled = X[shuffle]
+        scale_shuffled = scale[shuffle]
         pred=cross_val_predict(
             model,
             X_shuffled,
@@ -117,7 +130,9 @@ def cross_val_scores_classification(
             fit_params=fit_params)
         
         true_class_pred=pred[pred_indices,y_shuffled]
-        pred_score = (1-true_class_pred)**2
+
+        pred_score = (2-true_class_pred)**2*scale_shuffled
+
         total_error=evaluate_scoring(y_ones,true_class_pred)
         inv_shuffle[shuffle]=pred_indices
 
@@ -222,8 +237,8 @@ def find_outliers(
     
     Returns: array mask this is true where outlier is found, total score of model prediction with given outliers removed
     """
-    if gamma<=0 or gamma>1:
-        raise ValueError("gamma must be in range (0;1]")
+    if gamma<=0 or gamma>=1:
+        raise ValueError("gamma must be in range (0;1)")
     
     if outliers_to_remove<=0 or outliers_to_remove>1:
         raise ValueError("outliers_to_remove must be in range (0;1]")
@@ -254,6 +269,7 @@ def find_outliers(
             if plot: print("Increase in total error. Reverting previous and stopping...")
             outliers_mask[prev_outliers]=False
             break
+            pass
 
         prev_eval_score=eval_score
 
@@ -304,7 +320,12 @@ def generate_colors_for_classification(y : np.ndarray,seed=42):
     np.random.seed(seed)
     colors = np.random.uniform(0,1,size=(len(classes),3))
     results = np.zeros((len(y),3))
+    def color_scale(x): 
+        minx = np.min(x,axis=0)
+        maxx = np.max(x,axis=0)
+        scale = 1/(maxx-minx)
+        return ((x - minx)*scale * 255).astype(int)
 
     for cls,color in zip(classes,colors):
         results[y==cls]=color
-    return results
+    return color_scale(results)

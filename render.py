@@ -3,13 +3,14 @@ import plotly.graph_objects as go
 from sklearn.decomposition import PCA
 
 
-def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str]):
+def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str],dot_size=5,template='plotly_dark'):
     # Ensure the input is an ndarray
     if not isinstance(data_array, np.ndarray) or data_array.shape[1] < 3:
         raise ValueError("The input must be an ndarray with at least 3 columns.")
     
     # Normalize the color dimensions to be between 0 and 255
-    color_scale = lambda x: ((x - np.min(x)) / (np.max(x) - np.min(x)) * 255).astype(int)
+    # def color_scale(x): return ((x - np.min(x)) / (np.max(x) - np.min(x)) * 255).astype(int)
+    def color_scale(x): return x.astype(int)
     
     if data_array.shape[1]>3:
         red = color_scale(data_array[:, 3])
@@ -36,7 +37,7 @@ def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str]):
         z=data_array[:, 2],
         mode='markers',
         marker=dict(
-            size=4,
+            size=dot_size,
             color=colors,  # Set color to the RGB values
             opacity=0.7
         )
@@ -52,12 +53,12 @@ def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str]):
         ),
         width=700,
         height=600,
-        template='plotly_dark'
+        template=template
     )
     
     fig.show()
 
-def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str]):
+def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],dot_size=5,template='plotly_dark'):
     # Ensure the input is an ndarray
     if not isinstance(data_array, np.ndarray) or data_array.shape[1] < 2:
         raise ValueError("The input must be an ndarray with at least 2 columns.")
@@ -89,7 +90,7 @@ def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str]):
         y=data_array[:, 1],
         mode='markers',
         marker=dict(
-            size=4,
+            size=dot_size,
             color=colors,  # Set color to the RGB values
             opacity=0.7
         )
@@ -102,7 +103,7 @@ def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str]):
         yaxis_title=axis_titles[1],
         width=700,
         height=600,
-        template='plotly_dark'
+        template=template
     )
 
     fig.show()

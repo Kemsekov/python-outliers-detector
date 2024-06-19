@@ -1,4 +1,5 @@
 
+from typing import Literal
 import numpy as np
 from sklearn.decomposition import KernelPCA
 from sklearn.metrics import r2_score
@@ -9,12 +10,11 @@ def kernel_pca_scorer(estimator,X,y=None):
     X_reduced = estimator.transform(X)
     X_preimage = estimator.inverse_transform(X_reduced)
     score = r2_score(X, X_preimage)
-
     if np.isnan(score): score = 0
     return score
 
 class KernelPCASearchCV:
-    def __init__(self,n_components,n_iter=-1,scaler = None) -> None:
+    def __init__(self,n_components,n_iter=-1,kernel=Literal['rbf','poly','sigmoid'],scaler = None) -> None:
         """
         n_components: components to use for pca
         n_iter: iterations to do on parameters search. Put -1 to use all parameters space
@@ -28,7 +28,7 @@ class KernelPCASearchCV:
         """Scaler used for data"""
         self.param_grid = {
             "gamma": np.linspace(0.01, 1.5, 10),
-            "kernel": ["rbf", "sigmoid", "poly"],
+            "kernel": [kernel],
             "alpha":[0.00001,0.001,0.1,1]
         }
         max_iter = \
