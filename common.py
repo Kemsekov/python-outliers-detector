@@ -147,7 +147,9 @@ def cross_val_scores(
         cv=5,
         repeats=3,
         seed = 42, 
-        fit_params : dict = None):
+        fit_params : dict = None,
+        class_weight_scale_power = 0.5
+        ):
     """
     Computes samples error from model prediction using repeated cross-validation.
     For a model that have well fitted hyperparameters and is capable of learning
@@ -169,6 +171,8 @@ def cross_val_scores(
 
     seed: random seed
 
+    class_weight_scale_power: how much to consider class size in computing scores for samples.
+
     Returns:
     mean errors on each sample, mean total model error from all repeats
     """
@@ -182,7 +186,8 @@ def cross_val_scores(
             cv,
             repeats,
             seed,
-            fit_params)
+            fit_params,
+            class_weight_scale_power)
     return cross_val_scores_regression(
         X,y,
         model,
@@ -210,6 +215,7 @@ def find_outliers(
         evaluate_loss=metrics.mean_squared_error,
         cv=5,
         repeats=3,
+        class_weight_scale_power = 0.5,
         seed = 42,
         plot=False,
         elements_to_plot=40):
@@ -230,6 +236,8 @@ def find_outliers(
     iterations: how many iterations to do of algorithm
     
     gamma: how much decrease amount of removed items on each next iteration
+
+    class_weight_scale_power: how much to consider class size in computing scores for samples. Use this parameter to balance removed samples count for each class. 0 means to not consider class sizes at all, 1 means linearly consider class sizes in scores.
 
     seed: algorithm random seed
 
@@ -262,7 +270,8 @@ def find_outliers(
             evaluate_scoring=evaluate_loss,
             cv=cv,
             repeats=repeats,
-            seed=seed)
+            seed=seed,
+            class_weight_scale_power=class_weight_scale_power)
         if plot: print("Evaluate score ",eval_score)
         
         if eval_score>prev_eval_score: 
