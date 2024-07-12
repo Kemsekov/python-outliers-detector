@@ -5,5 +5,4 @@ pandas==2.1.4
 pip-chill==1.0.3
 plotly==5.22.0
 scikit-learn==1.4.0
-tensorflow==2.15.0.post1
 xgboost==2.0.3
