@@ -211,7 +211,7 @@ def find_outliers(
         X,y,special_model,
         outliers_to_remove = 0.05,
         iterations = 5,
-        gamma = 0.5,
+        gamma = 0.9,
         evaluate_loss=metrics.mean_squared_error,
         cv=5,
         repeats=3,

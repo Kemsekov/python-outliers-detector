@@ -2,28 +2,32 @@ import numpy as np
 import plotly.graph_objects as go
 from sklearn.decomposition import PCA
 
+def __color_scale(x):
+    min_x = np.min(x)
+    max_x = np.max(x)
+    scale = max_x-min_x
+    scale = 1 if scale == 0 else scale
+    return ((x - np.min(x)) / scale * 255).astype(int)
 
 def plot_3d_rgb(data_array : np.ndarray,title : str, axis_titles : list[str],dot_size=5,template='plotly_dark'):
     # Ensure the input is an ndarray
     if not isinstance(data_array, np.ndarray) or data_array.shape[1] < 3:
         raise ValueError("The input must be an ndarray with at least 3 columns.")
     
+
     # Normalize the color dimensions to be between 0 and 255
-    # def color_scale(x): return ((x - np.min(x)) / (np.max(x) - np.min(x)) * 255).astype(int)
-    def color_scale(x): return x.astype(int)
-    
     if data_array.shape[1]>3:
-        red = color_scale(data_array[:, 3])
+        red = __color_scale(data_array[:, 3])
     else:
         red = np.ones(data_array.shape[0])*255
     
     if data_array.shape[1]>4:
-        green = color_scale(data_array[:, 4])
+        green = __color_scale(data_array[:, 4])
     else:
         green = np.ones(data_array.shape[0])*255
 
     if data_array.shape[1]>5:
-        blue = color_scale(data_array[:, 5])
+        blue = __color_scale(data_array[:, 5])
     else:
         blue = np.ones(data_array.shape[0])*255
 
@@ -64,20 +68,18 @@ def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],dot_s
         raise ValueError("The input must be an ndarray with at least 2 columns.")
 
     # Normalize the color dimensions to be between 0 and 255
-    color_scale = lambda x: ((x - np.min(x)) / (np.max(x) - np.min(x)) * 255).astype(int)
-
     if data_array.shape[1] > 2:
-        red = color_scale(data_array[:, 2])
+        red = __color_scale(data_array[:, 2])
     else:
         red = np.ones(data_array.shape[0]) * 255
 
     if data_array.shape[1] > 3:
-        green = color_scale(data_array[:, 3])
+        green = __color_scale(data_array[:, 3])
     else:
         green = np.ones(data_array.shape[0]) * 255
 
     if data_array.shape[1] > 4:
-        blue = color_scale(data_array[:, 4])
+        blue = __color_scale(data_array[:, 4])
     else:
         blue = np.ones(data_array.shape[0]) * 255
 
