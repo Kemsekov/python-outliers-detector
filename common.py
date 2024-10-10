@@ -3,8 +3,36 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.discriminant_analysis import StandardScaler
 from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_predict, cross_val_score
+import numpy as np
+from sklearn.model_selection import BaseCrossValidator, train_test_split
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+
+def test_ridge_fit(X,y,degree=3):
+    """
+    Prints r2 score mean and std of ridge fit on model with data transformed by given degree polynomial features.
+    
+    The better(cleaner) given data is, the higher will be output metric of given method
+    """
+    scaler = StandardScaler()
+    X_n=scaler.fit_transform(X)
+    model = make_pipeline(PolynomialFeatures(degree=degree), Ridge())
+
+    r2_scoring = metrics.make_scorer(metrics.r2_score)
+    print("r2 score of poly-features ridge regression")
+    cross_val_score_mean_std(
+        cross_val_score(
+            model,
+            X_n,
+            y,
+            cv=5,
+            scoring=r2_scoring
+        ),
+        y.name)
 
 def XGB_search_params():
     params = {

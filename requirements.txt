@@ -1,8 +1,0 @@
-ipykernel==6.29.4
-matplotlib==3.8.2
-nbformat==5.10.4
-pandas==2.1.4
-pip-chill==1.0.3
-plotly==5.22.0
-scikit-learn==1.4.0
-xgboost==2.0.3
