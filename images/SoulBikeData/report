@@ -1,0 +1,22 @@
+original
+r2 scoring
+-----------Hour-----------
+Mean  0.6057341857964842
+Std  0.01681379109305546
+
+
+cleaned
+removed  0.1495433789954338
+r2 score
+-----------Hour-----------
+Mean  0.9137696541513487
+Std  0.005208404332852225
+
+outliers_to_remove=0.15,
+iterations=10,
+gamma=0.99,
+cv=5,
+repeats=3
+
+PCA: n_components=5
+render_dims: X_small[:,[4,3,2,1,0]
