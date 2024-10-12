@@ -3,36 +3,10 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
-from sklearn.discriminant_analysis import StandardScaler
 from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_predict, cross_val_score
 import numpy as np
-from sklearn.model_selection import BaseCrossValidator, train_test_split
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import make_pipeline
 
-def test_ridge_fit(X,y,degree=3):
-    """
-    Prints r2 score mean and std of ridge fit on model with data transformed by given degree polynomial features.
-    
-    The better(cleaner) given data is, the higher will be output metric of given method
-    """
-    scaler = StandardScaler()
-    X_n=scaler.fit_transform(X)
-    model = make_pipeline(PolynomialFeatures(degree=degree), Ridge())
-
-    r2_scoring = metrics.make_scorer(metrics.r2_score)
-    print("r2 score of poly-features ridge regression")
-    cross_val_score_mean_std(
-        cross_val_score(
-            model,
-            X_n,
-            y,
-            cv=5,
-            scoring=r2_scoring
-        ),
-        y.name)
 
 def XGB_search_params():
     params = {
@@ -246,7 +220,8 @@ def find_outliers(
         class_weight_scale_power = 0.5,
         seed = 42,
         plot=False,
-        elements_to_plot=40):
+        elements_to_plot=40,
+        fit_params = None):
     """
     Finds outliers in a data by repeatedly fitting a special model and selecting samples with worst prediction performance as outliers.
     
@@ -299,14 +274,14 @@ def find_outliers(
             cv=cv,
             repeats=repeats,
             seed=seed,
-            class_weight_scale_power=class_weight_scale_power)
+            class_weight_scale_power=class_weight_scale_power,
+            fit_params=fit_params)
         if plot: print("Evaluate score ",eval_score)
         
         if eval_score>prev_eval_score: 
             if plot: print("Increase in total error. Reverting previous and stopping...")
             outliers_mask[prev_outliers]=False
             break
-            pass
 
         prev_eval_score=eval_score
 
@@ -332,6 +307,7 @@ def find_outliers(
             plt.xlabel("Sample")
             plt.ylabel("Prediction score")
             plt.show()
+    
     return outliers_mask, eval_score
 
 def cross_val_classification_report(model,X,y,cv, target_names = None):
