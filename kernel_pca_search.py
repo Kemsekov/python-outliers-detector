@@ -70,6 +70,7 @@ class KernelPCASearchCV:
         grid_search.fit(X)
         self.kpca = grid_search.best_estimator_
         self.score = grid_search.best_score_
+        return self
     
     def fit_transform(self,X):
         self.fit(X)
