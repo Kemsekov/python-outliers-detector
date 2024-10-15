@@ -246,7 +246,7 @@ def find_outliers(
 
     plot: render results or not
     
-    Returns: array mask this is true where outlier is found, total score of model prediction with given outliers removed
+    Returns: array mask this is true where outlier is found, prediction loss on each sample in dataset(higher means sample is more likely to be outlier),total score of model prediction with given outliers removed
     """
     if gamma<=0 or gamma>=1:
         raise ValueError("gamma must be in range (0;1)")
@@ -259,6 +259,9 @@ def find_outliers(
 
     prev_eval_score = float('inf')
     prev_outliers=[]
+
+    # prediction difference for all samples
+    samples_pred_loss = -np.ones(len(y))
 
     outliers_mask = np.zeros_like(y,dtype=bool)
     for i in range(iterations):
@@ -291,12 +294,17 @@ def find_outliers(
         sorted_ind = np.argsort(-pred_loss_values)
         indices = clean_data_indices[sorted_ind]
 
+
         # elements to move to outliers
         to_remove = int(outlier_remove_partition*len(y))
         if to_remove==0: to_remove=1
 
         prev_outliers=indices[:to_remove]
         outliers_mask[prev_outliers]=True
+
+        # update recomputed samples prediction loss
+        samples_pred_loss[indices]=pred_loss_values[sorted_ind]
+
         outlier_remove_partition*=gamma
 
         if plot:
@@ -308,7 +316,7 @@ def find_outliers(
             plt.ylabel("Prediction score")
             plt.show()
     
-    return outliers_mask, eval_score
+    return outliers_mask, samples_pred_loss, eval_score
 
 def cross_val_classification_report(model,X,y,cv, target_names = None):
     y_true = []
