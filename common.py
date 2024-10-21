@@ -226,7 +226,7 @@ def cross_val_scores(
     Returns:
     mean errors on each sample, mean total model error from all repeats
     """
-
+    
     is_classification = isinstance(model,ClassifierMixin)
     if is_classification:
         return cross_val_scores_classification(
