@@ -51,6 +51,7 @@ You need to have at least some reasonable metrics on your dataset with some init
 
 ## 3. Find outliers
 ```py
+import numpy as np
 from common import find_outliers
 
 X_numpy = np.array(X)
@@ -64,7 +65,7 @@ outliers_mask, pred_loss, score = find_outliers(
     y_numpy,
     model,
     outliers_to_remove=outliers_to_remove,
-    iterations=5,
+    iterations=10,
     gamma=0.9,
     evaluate_loss=metrics.mean_absolute_error,
     cv=5,
@@ -73,6 +74,7 @@ outliers_mask, pred_loss, score = find_outliers(
 
 # true fraction of removed outliers
 removed_outliers=sum(outliers_mask)/len(X)
+print("removed",removed_outliers)
 ```
 
 This code will find outliers in a dataset, using provided model to iteratively filter out bad samples from dataset. 
@@ -91,8 +93,8 @@ For parameters description see `find_outliers` method.
 ## 4. Check that your dataset is cleaner than before
 You can do this by recomputing your metrics on clean data
 ```py
-X_clean = np.array(X)[~outliers_mask]
-y_clean = np.array(y)[~outliers_mask]
+X_clean = X_numpy[~outliers_mask]
+y_clean = y_numpy[~outliers_mask]
 
 # repeat step 2 with clean data
 ```
