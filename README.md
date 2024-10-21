@@ -21,6 +21,7 @@ for regression
 ```py
 from sklearn.model_selection import RepeatedKFold, cross_val_score
 import sklearn.metrics as metrics
+from common import cross_val_score_mean_std
 
 cv = RepeatedKFold(n_splits=5, n_repeats=2)
 scoring = metrics.make_scorer(metrics.r2_score)
