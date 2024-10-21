@@ -25,9 +25,10 @@ from common import cross_val_score_mean_std
 
 cv = RepeatedKFold(n_splits=5, n_repeats=2)
 scoring = metrics.make_scorer(metrics.r2_score)
-cleaned_data_score=cross_val_score(model,X,y,cv=cv,scoring=scoring)
+original_data_score=cross_val_score(model,X,y,cv=cv,scoring=scoring)
 # it will print cross-validated mean and std of r2 metric score on your data
-cross_val_score_mean_std(cleaned_data_score,'label name')
+print("cross-validated metric")
+cross_val_score_mean_std(original_data_score,y.name)
 ```
 
 for classification
@@ -36,7 +37,7 @@ from common import cross_val_classification_report
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=2)
-report = cross_val_classification_report(
+original_data_report = cross_val_classification_report(
     model=model,
     X=X,
     y=y,
@@ -44,7 +45,7 @@ report = cross_val_classification_report(
     target_names=['class 1','class 2','...']
 )
 # it will print classification report from model cross-validation
-print(report)
+print(original_data_report)
 ```
 
 You need to have at least some reasonable metrics on your dataset with some initial model.
