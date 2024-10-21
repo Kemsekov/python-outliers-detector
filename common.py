@@ -1,3 +1,4 @@
+# pip install scikit-learn 
 from random import randint
 from typing import Literal
 import numpy as np
@@ -9,6 +10,7 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
 def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+    """Search parameters for XGB model from xgboost using randomized search cv and return best found model"""
     from xgboost import XGBRegressor, XGBClassifier
     special_model = XGBRegressor(device='cpu',n_jobs=-1) if task=="regression" else XGBClassifier(device='cpu',n_jobs=-1)
     params = XGB_search_params()
@@ -27,8 +29,8 @@ def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classificati
     special_model=search.best_estimator_
     return special_model
 
-
 def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+    """Search parameters for KNN model from sklearn using randomized search cv and return best found model"""
     s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
     state = randint(0,1000)
     search = RandomizedSearchCV(
@@ -52,6 +54,7 @@ def KNN_search_params():
         "leaf_size":[20,30,40],
         "p":[1.5,2,2.5,3]
     }
+
 def XGB_search_params():
     """XGB parameters search space"""
     params = {
