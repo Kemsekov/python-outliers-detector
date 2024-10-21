@@ -1,14 +1,61 @@
 
+from random import randint
+from typing import Literal
 from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
-from sklearn.model_selection import cross_val_predict, cross_val_score
+from sklearn.model_selection import RandomizedSearchCV, cross_val_predict, cross_val_score, train_test_split
 import numpy as np
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+
+def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+    from xgboost import XGBRegressor, XGBClassifier
+    special_model = XGBRegressor(device='cpu',n_jobs=-1) if task=="regression" else XGBClassifier(device='cpu',n_jobs=-1)
+    params = XGB_search_params()
+    state = randint(0,1000)
+    search = RandomizedSearchCV(
+        special_model,
+        params,
+        n_iter=n_iter,
+        cv=cv,
+        random_state=state,
+        n_jobs=-1
+    )
+
+    print("Searching XGB params...")
+    search.fit(X,y)
+    special_model=search.best_estimator_
+    return special_model
 
 
+def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+    s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
+    state = randint(0,1000)
+    search = RandomizedSearchCV(
+        s,
+        KNN_search_params(),
+        n_iter=n_iter,
+        cv=cv,
+        n_jobs=-1,
+        random_state=state
+    )
+    print("Searching KNN params...")
+    search.fit(X,y)
+    knn=search.best_estimator_
+    return knn
+
+def KNN_search_params():
+    """KNN parameters search space"""
+    return {
+        "n_neighbors":[3,5,7],
+        "weights":["uniform","distance"],
+        "leaf_size":[20,30,40],
+        "p":[1.5,2,2.5,3]
+    }
 def XGB_search_params():
+    """XGB parameters search space"""
     params = {
         # 'max_bin': [256,512,1024],
         'max_depth':        [2,4,6,8,10],
