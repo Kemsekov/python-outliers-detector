@@ -1,12 +1,10 @@
-
 from random import randint
 from typing import Literal
-from matplotlib import pyplot as plt
 import numpy as np
 from sklearn import metrics
 from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.metrics import classification_report
-from sklearn.model_selection import RandomizedSearchCV, cross_val_predict, cross_val_score, train_test_split
+from sklearn.model_selection import RandomizedSearchCV, cross_val_predict
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
@@ -300,6 +298,9 @@ def find_outliers(
     
     if outliers_to_remove<=0 or outliers_to_remove>1:
         raise ValueError("outliers_to_remove must be in range (0;1]")
+
+    if plot: 
+        from matplotlib import pyplot as plt
 
     outlier_remove_partition=\
         outliers_to_remove*(gamma-1)/(gamma**iterations-1)
