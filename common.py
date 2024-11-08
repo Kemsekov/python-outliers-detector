@@ -24,7 +24,6 @@ def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classificati
         n_jobs=-1
     )
 
-    print("Searching XGB params...")
     search.fit(X,y)
     return search
 
@@ -40,7 +39,7 @@ def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classificat
         n_jobs=-1,
         random_state=state
     )
-    print("Searching KNN params...")
+
     search.fit(X,y)
     return search
 
