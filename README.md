@@ -13,7 +13,7 @@ It could be any model that implements `sklearn.base.ClassifierMixin` or `sklearn
 ```py
 # assume X,y is your regression/classification data
 from common import fit_XGB_model
-model = fit_XGB_model(X,y,task="regression")
+model = fit_XGB_model(X,y,task="regression").best_estimator_
 ```
 ## 2. Ensure that your model is already performing reasonable-well on your dirty data
 

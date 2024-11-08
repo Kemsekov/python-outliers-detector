@@ -26,8 +26,7 @@ def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classificati
 
     print("Searching XGB params...")
     search.fit(X,y)
-    special_model=search.best_estimator_
-    return special_model
+    return search
 
 def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
     """Search parameters for KNN model from sklearn using randomized search cv and return best found model"""
@@ -43,8 +42,7 @@ def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classificat
     )
     print("Searching KNN params...")
     search.fit(X,y)
-    knn=search.best_estimator_
-    return knn
+    return search
 
 def KNN_search_params():
     """KNN parameters search space"""
@@ -71,7 +69,7 @@ def XGB_search_params():
 def cross_val_score_mean_std(scores,name):
     print(f"-----------{name}-----------")
     print("Mean ",np.mean(scores))
-    print("Std ",np.std(scores))
+    print("Std ",np.std(scores))    
 
 def cross_val_scores_regression(
         X,y,
@@ -369,7 +367,7 @@ def find_outliers(
     
     return outliers_mask, samples_pred_loss, eval_score
 
-def cross_val_classification_report(model,X,y,cv, target_names = None):
+def cross_val_classification_report(model,X,y,cv, target_names = None,output_dict = False):
     y_true = []
     y_pred = []
     for train,test in cv.split(X,y):
@@ -384,7 +382,7 @@ def cross_val_classification_report(model,X,y,cv, target_names = None):
     y_true=np.concatenate(y_true)
     y_pred=np.concatenate(y_pred)
 
-    return classification_report(y_true,y_pred,target_names=target_names)
+    return classification_report(y_true,y_pred,target_names=target_names,output_dict=output_dict)
 
 def generate_colors_for_classification(y : np.ndarray,seed=42):
     """Returns a color-representation of array y, where each unique class replaced with color"""
