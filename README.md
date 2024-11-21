@@ -54,6 +54,7 @@ You need to have at least some reasonable metrics on your dataset with some init
 ```py
 import numpy as np
 from common import find_outliers
+import sklearn.metrics as metrics
 
 X_numpy = np.array(X)
 y_numpy = np.array(y)
