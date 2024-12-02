@@ -9,40 +9,38 @@ from sklearn.model_selection import RandomizedSearchCV, cross_val_predict
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
-def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000)):
     """Search parameters for XGB model from xgboost using randomized search cv and return best found model"""
     from xgboost import XGBRegressor, XGBClassifier
     special_model = XGBRegressor(device='cpu',n_jobs=-1) if task=="regression" else XGBClassifier(device='cpu',n_jobs=-1)
     params = XGB_search_params()
-    state = randint(0,1000)
     search = RandomizedSearchCV(
         special_model,
         params,
         n_iter=n_iter,
         cv=cv,
-        random_state=state,
+        random_state=random_state,
         n_jobs=-1
     )
 
     search.fit(X,y)
     return search
 
-def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression"):
+def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000)):
     """Search parameters for KNN model from sklearn using randomized search cv and return best found model"""
     s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
-    state = randint(0,1000)
     search = RandomizedSearchCV(
         s,
         KNN_search_params(),
         n_iter=n_iter,
         cv=cv,
         n_jobs=-1,
-        random_state=state
+        random_state=random_state
     )
 
     search.fit(X,y)
     return search
-
+    
 def KNN_search_params():
     """KNN parameters search space"""
     return {
