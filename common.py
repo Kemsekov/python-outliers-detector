@@ -25,7 +25,7 @@ def class_weighted_subset(X,y,size=1000,bins=255,random_state=42):
     classes_distrib = np.unique(y_,return_counts=True)[1]
     p = 1/classes_distrib[y_]
     p/=p.sum()
-    np.random.seed(seed)
+    np.random.seed(random_state)
     ind = np.random.choice(len(X),len(X),p=p,replace=False)
     _, idx = np.unique(ind, return_index=True)
     ind_unduplicated = ind[np.sort(idx)]
@@ -58,7 +58,7 @@ def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classificat
     """
     Search parameters for KNN model from sklearn using randomized search cv and return best found model
     data_subset_size - how many elements to take to fit xgb model from original dataset
-    """
+    """ 
     X,y = class_weighted_subset(X,y,size=data_subset_size,random_state=random_state)
     s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
     search = RandomizedSearchCV(
