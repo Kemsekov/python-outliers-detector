@@ -13,7 +13,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 def plot_3d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str], 
-                dot_size=5, template='plotly_dark', axis_sizes=None):
+                dot_size=5,  axis_sizes=None):
     # Ensure the input is an ndarray
     if not isinstance(data_array, np.ndarray) or data_array.shape[1] < 3:
         raise ValueError("The input must be an ndarray with at least 3 columns.")
@@ -74,7 +74,7 @@ def plot_3d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],
 # axis_sizes = [(0, 10), (0, 20), (0, 30)]
 
 
-def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],dot_size=5,template='plotly_dark',axis_sizes=None):
+def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],dot_size=5,axis_sizes=None):
     # Ensure the input is an ndarray
     if not isinstance(data_array, np.ndarray) or data_array.shape[1] < 2:
         raise ValueError("The input must be an ndarray with at least 2 columns.")
@@ -116,8 +116,7 @@ def plot_2d_rgb(data_array: np.ndarray, title: str, axis_titles: list[str],dot_s
         xaxis_title=axis_titles[0],
         yaxis_title=axis_titles[1],
         width=700,
-        height=600,
-        template=template
+        height=600
     )
 
     fig.show()

@@ -9,9 +9,36 @@ from sklearn.model_selection import RandomizedSearchCV, cross_val_predict
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
-def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000)):
-    """Search parameters for XGB model from xgboost using randomized search cv and return best found model"""
+def class_weighted_subset(X,y,size=5000,bins=255):
+    """
+    Make weighted subset of a dataset for both classification and regression data.
+    This method makes sure to include the rarest occurring labels in y                          
+    """
+    y=np.array(y)
+    bins=np.min([bins,len(np.unique(y))])
+    
+    y_ = 1.0*y-y.min()
+    y_/=y_.max()
+    y_*=bins
+    y_=np.unique(y_,return_inverse=True)[1]
+    
+    classes_distrib = np.unique(y_,return_counts=True)[1]
+    p = 1/classes_distrib[y_]
+    p/=p.sum()
+    ind = np.random.choice(len(X),len(X),p=p,replace=False)
+    _, idx = np.unique(ind, return_index=True)
+    ind_unduplicated = ind[np.sort(idx)]
+    ind=ind_unduplicated[:size]
+    return X[ind],y[ind]
+
+def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000),data_subset_size=5000):
+    """
+    Search parameters for XGB model from xgboost using randomized search cv and return best found model
+    data_subset_size - how many elements to take to fit xgb model from original dataset
+    """
     from xgboost import XGBRegressor, XGBClassifier
+    
+    X,y = class_weighted_subset(X,y,size=data_subset_size)
     special_model = XGBRegressor(device='cpu',n_jobs=-1) if task=="regression" else XGBClassifier(device='cpu',n_jobs=-1)
     params = XGB_search_params()
     search = RandomizedSearchCV(
@@ -26,8 +53,9 @@ def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classificati
     search.fit(X,y)
     return search
 
-def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000)):
+def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000),data_subset_size=5000):
     """Search parameters for KNN model from sklearn using randomized search cv and return best found model"""
+    X,y = class_weighted_subset(X,y,size=data_subset_size)
     s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
     search = RandomizedSearchCV(
         s,
@@ -311,7 +339,6 @@ def find_outliers(
 
     outliers_mask = np.zeros_like(y,dtype=bool)
     for i in range(iterations):
-
         X_clean = X[~outliers_mask]
         y_clean = y[~outliers_mask]
 
