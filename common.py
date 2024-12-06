@@ -55,7 +55,10 @@ def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classificati
     return search
 
 def fit_KNN_model(X,y, n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000),data_subset_size=1000):
-    """Search parameters for KNN model from sklearn using randomized search cv and return best found model"""
+    """
+    Search parameters for KNN model from sklearn using randomized search cv and return best found model
+    data_subset_size - how many elements to take to fit xgb model from original dataset
+    """
     X,y = class_weighted_subset(X,y,size=data_subset_size,random_state=random_state)
     s = KNeighborsRegressor() if task=="regression" else KNeighborsClassifier()
     search = RandomizedSearchCV(
