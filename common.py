@@ -32,7 +32,7 @@ def class_weighted_subset(X,y,size=1000,bins=255,random_state=42):
     ind=ind_unduplicated[:size]
     return X[ind],y[ind]
 
-def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000),data_subset_size=10000,device='cpu):
+def fit_XGB_model(X,y,n_iter=150,cv=5, task : Literal['regression','classification'] = "regression",random_state = randint(0,1000),data_subset_size=10000,device='cpu'):
     """
     Search parameters for XGB model from xgboost using randomized search cv and return best found model
     data_subset_size - how many elements to take to fit xgb model from original dataset
